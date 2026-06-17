@@ -1,0 +1,23 @@
+const nav = document.createElement('nav');
+nav.className = 'navbar bg-neutral text-neutral-content px-6 shadow-md';
+nav.innerHTML = `
+  <div class="flex-1">
+    <span class="text-xl font-bold">${document.title}</span>
+  </div>
+  <div class="flex-none">
+    <ul class="menu menu-horizontal px-1 gap-1">
+      <li><a href="/users">Usuarios</a></li>
+      <li><a href="/cliente">Clientes</a></li>
+      <li><a href="/documento_cliente">Documentos</a></li>
+      <li><a href="/vehiculo">Vehículos</a></li>
+      <li><a href="/renta">Rentas</a></li>
+      <li><a href="/seguro">Seguros</a></li>
+      <li><a href="/tipo_seguro">Tipos de Seguro</a></li>
+      <li><a href="/rol">Roles</a></li>
+      <li><a href="/reporte_falla">Fallas</a></li>
+      <li><a href="/modelo_vehiculo">Modelos</a></li>
+      <li><a href="/sucursal">Sucursales</a></li>
+    </ul>
+  </div>
+`;
+document.body.prepend(nav);

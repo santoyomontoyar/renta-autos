@@ -13,3 +13,9 @@ function login($email, $password)
   }
   return false;
 }
+function getAllUsuarios() {
+    global $db;
+    $stmt = $db->prepare("SELECT * FROM usuario");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
