@@ -15,7 +15,7 @@ function login($email, $password)
 }
 function getAllUsuarios() {
     global $db;
-    $stmt = $db->prepare("SELECT * FROM usuario ORDER BY nombre ASC");
+    $stmt = $db->prepare("SELECT * FROM usuario");
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
