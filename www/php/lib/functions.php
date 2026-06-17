@@ -129,3 +129,50 @@ function getAllModelos() {
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+
+function getAllRoles() {
+    global $db;
+
+    $stmt = $db->prepare("
+        SELECT 
+            id,
+            nombre
+        FROM roles
+    ");
+
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+function getAllSucursales() {
+    global $db;
+
+    $stmt = $db->prepare("
+        SELECT 
+            id_sucursal,
+            nombre,
+            direccion,
+            telefono
+        FROM sucursal
+    ");
+
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getAllFallas() {
+    global $db;
+
+    $stmt = $db->prepare("
+        SELECT 
+            id_reporte_falla,
+            vehiculo_id,
+            descripcion,
+            fecha,
+            estado
+        FROM reporte_falla
+    ");
+
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
