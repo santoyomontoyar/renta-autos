@@ -79,3 +79,53 @@ function getAllRentas() {
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+
+function getAllTipoSeguro() {
+    global $db;
+
+    $stmt = $db->prepare("
+        SELECT 
+            id_tipo_seguro,
+            nombre
+        FROM tipo_seguro
+    ");
+
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getAllSeguros() {
+    global $db;
+
+    $stmt = $db->prepare("
+        SELECT 
+            s.id_seguro,
+            ts.nombre AS tipo_seguro,
+            s.costo_diario
+        FROM seguro s
+        INNER JOIN tipo_seguro ts 
+            ON s.id_tipo_seguro = ts.id_tipo_seguro
+    ");
+
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getAllModelos() {
+    global $db;
+
+    $stmt = $db->prepare("
+        SELECT 
+            id_modelo,
+            nombre_modelo,
+            marca,
+            year,
+            categoria,
+            costo_diario
+        FROM modelo_vehiculo
+    ");
+
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
