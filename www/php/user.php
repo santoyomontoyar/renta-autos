@@ -11,6 +11,9 @@ switch ($action) {
   case 'login':
     $data = login($email, $password);
     break;
+    case 'getAll':
+    $data = getAllUsuarios();
+    break;
   default:
     echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
     break;
