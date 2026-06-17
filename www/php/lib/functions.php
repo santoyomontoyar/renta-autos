@@ -49,3 +49,33 @@ function getAllVehiculos() {
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+function getAllRentas() {
+    global $db;
+    $stmt = $db->prepare("
+        SELECT 
+            r.id_renta,
+            CONCAT(u.nombre, ' ', u.apellido) AS cliente,
+            CONCAT(mv.marca, ' ', mv.nombre_modelo) AS vehiculo,
+            ts.nombre AS seguro,
+            so.nombre AS sucursal_origen,
+            sd.nombre AS sucursal_destino,
+            r.fecha_inicio,
+            r.fecha_fin,
+            r.monto_deposito,
+            r.estado_deposito,
+            r.precio_cobrado,
+            r.estado
+        FROM renta r
+        JOIN cliente c ON r.id_cliente = c.id_cliente
+        JOIN usuario u ON c.id_usuario = u.id_usuario
+        JOIN vehiculo v ON r.id_vehiculo = v.id_vehiculo
+        JOIN modelo_vehiculo mv ON v.id_modelo = mv.id_modelo
+        JOIN seguro s ON r.id_seguro = s.id_seguro
+        JOIN tipo_seguro ts ON s.id_tipo_seguro = ts.id_tipo_seguro
+        JOIN sucursal so ON r.id_sucursal_origen = so.id_sucursal
+        JOIN sucursal sd ON r.id_sucursal_destino = sd.id_sucursal
+    ");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}

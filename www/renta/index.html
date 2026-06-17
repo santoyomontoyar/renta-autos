@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <title>Rentas</title>
+</head>
+<body class="p-8">
+
+  <script src="../js/session.js"></script>
+  <script src="../js/navbar.js"></script>
+
+        <div class="overflow-x-auto">
+          <table class="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Vehículo</th>
+                <th>Seguro</th>
+                <th>Sucursal Origen</th>
+                <th>Sucursal Destino</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Depósito</th>
+                <th>Estado Depósito</th>
+                <th>Precio</th>
+                <th>Estado renta</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+  <script src="../js/renta.js"></script>
+</body>
+</html>
