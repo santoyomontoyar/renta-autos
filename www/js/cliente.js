@@ -13,11 +13,7 @@ fetch("../php/cliente.php", {
                 <td class="px-6 py-4 text-sm text-gray-700 font-semibold">${c.nombre} ${c.apellido}</td>
                 <td class="px-6 py-4 text-sm text-gray-500">${c.correo}</td>
                 <td class="px-6 py-4 text-sm text-gray-500">${c.telefono}</td>
-                <td class="px-6 py-4 text-sm">
-                    <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${c.estado === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                        ${c.estado}
-                    </span>
-                </td>
+                <td>${c.estado}</td>
             </tr>
         `).join('');
     }

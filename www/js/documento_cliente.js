@@ -11,11 +11,7 @@ fetch("../php/documento_cliente.php", {
             <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                 <td class="px-6 py-4 text-sm font-medium text-gray-900">#${d.id_documento}</td>
                 <td class="px-6 py-4 text-sm text-gray-700 font-medium">${d.nombre} ${d.apellido}</td>
-                <td class="px-6 py-4 text-sm">
-                    <span class="px-2 py-0.5 text-xs font-semibold rounded bg-blue-50 text-blue-700 border border-blue-200">
-                        ${d.tipo_documento.replace('_', ' ')}
-                    </span>
-                </td>
+                <td class="px-6 py-4 text-sm font-medium text-gray-700">${d.tipo_documento.replace('_', ' ')}</td>
                 <td class="px-6 py-4 text-sm font-mono text-gray-600">${d.numero_documento}</td>
                 <td class="px-6 py-4 text-sm text-gray-500">${d.fecha_vencimiento}</td>
                 <td class="px-6 py-4 text-sm">
