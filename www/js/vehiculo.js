@@ -17,11 +17,7 @@ fetch("../php/vehiculo.php", {
                 <td class="px-6 py-4 text-sm font-mono uppercase text-gray-600">${v.placa}</td>
                 <td class="px-6 py-4 text-sm text-gray-500 uppercase text-xs font-semibold">${v.categoria}</td>
                 <td class="px-6 py-4 text-sm font-semibold text-gray-900">$${v.costo_diario}/día</td>
-                <td class="px-6 py-4 text-sm">
-                    <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${v.estado === 'Disponible' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
-                        ${v.estado}
-                    </span>
-                </td>
+                <td class="px-6 py-4 text-sm text-gray-700">${v.estado}</td>
             </tr>
         `).join('');
     }
