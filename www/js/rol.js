@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    fetch("../php/roles.php", {
+    fetch("../php/rol.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "getAll" })
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (json.status === "success" && json.data.length > 0) {
             tbody.innerHTML = json.data.map(d => `
                 <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">#${d.id}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">#${d.id_rol}</td>
 
                     <td class="px-6 py-4 text-sm text-gray-700 font-semibold">
                         ${d.nombre}

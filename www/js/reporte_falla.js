@@ -18,26 +18,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (json.status === "success" && json.data.length > 0) {
             tbody.innerHTML = json.data.map(d => `
-                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">#${d.id_reporte_falla}</td>
 
                     <td class="px-6 py-4 text-sm text-gray-700">
-                        ${d.vehiculo_id}
+                        ${d.id_falla}
+                    </td>
+
+                    <td class="px-6 py-4 text-sm text-gray-600">
+                        ${d.id_renta}
+                    </td>
+
+                    <td class="px-6 py-4 text-sm text-gray-600">
+                        ${d.id_usuario}
                     </td>
 
                     <td class="px-6 py-4 text-sm text-gray-600">
                         ${d.descripcion}
                     </td>
-
                     <td class="px-6 py-4 text-sm text-gray-600">
-                        ${d.fecha}
+                        ${d.fecha_reporte}
                     </td>
 
-                    <td class="px-6 py-4 text-sm">
-                        <span class="${d.estado == 1 ? 'text-green-600' : 'text-red-600'} font-semibold">
-                            ${d.estado == 1 ? 'Resuelto' : 'Pendiente'}
-                        </span>
-                    </td>
+                    
                 </tr>
             `).join('');
         } else {

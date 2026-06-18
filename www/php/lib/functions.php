@@ -15,7 +15,10 @@ function login($email, $password)
 }
 function getAllUsuarios() {
     global $db;
-    $stmt = $db->prepare("SELECT * FROM usuario");
+    $stmt = $db->prepare("SELECT
+    u.id_usuario, u.nombre, u.apellido, u.correo, u.telefono, u.estado, r.nombre AS rol
+                          FROM usuario u
+                          INNER JOIN rol r ON u.id_rol = r.id_rol");
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -136,23 +139,22 @@ function getAllRoles() {
 
     $stmt = $db->prepare("
         SELECT 
-            id,
+            id_rol,
             nombre
-        FROM roles
+        FROM rol
     ");
 
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-function getAllSucursales() {
+function getAllsucursal() {
     global $db;
 
     $stmt = $db->prepare("
         SELECT 
             id_sucursal,
             nombre,
-            direccion,
-            telefono
+            ciudad
         FROM sucursal
     ");
 
@@ -165,11 +167,11 @@ function getAllFallas() {
 
     $stmt = $db->prepare("
         SELECT 
-            id_reporte_falla,
-            vehiculo_id,
+            id_falla,
+            id_renta,
+            id_usuario,
             descripcion,
-            fecha,
-            estado
+            fecha_reporte
         FROM reporte_falla
     ");
 
