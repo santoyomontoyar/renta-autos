@@ -16,7 +16,7 @@ fetch("../php/user.php", {
             <td>${u.correo}</td>
             <td>${u.telefono}</td>
             <td>${u.estado}</td>
-            <td>${u.id_rol}</td>
+            <td>${u.rol}</td>
           </tr>
         `;
       });
