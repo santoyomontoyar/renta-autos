@@ -14,6 +14,9 @@ switch ($action) {
     case 'getAll':
     $data = getAllUsuarios();
     break;
+    case 'insert':
+    $data = insertUsuarios($_post);
+    break;
   default:
     echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
     break;
