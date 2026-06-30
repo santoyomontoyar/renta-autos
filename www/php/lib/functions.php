@@ -178,3 +178,15 @@ function getAllFallas() {
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+function insertUsuarios($datos){
+    $name = $datos["name"];
+    $lastname = $datos["lastname"];
+    $email = $datos["email"];
+    $phone = $datos["phone"];
+    $status = $datos["status"];
+    $rol = $datos["role"];
+    
+    $consulta = "INSERT INTO usuario (nombre, apellido, telefono, correo, password, estado, id_rol) VALUES ('$name','$lastname', '$phone', '$email','','$status', $rol )";
+    
+}
