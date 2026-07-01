@@ -211,29 +211,6 @@ function insertCliente($id_usuario) {
     }
 }
 
-function updateCliente($id_cliente, $id_usuario) {
-    global $db;
-    try {
-        $stmt = $db->prepare("UPDATE cliente SET id_usuario = :id_usuario WHERE id_cliente = :id_cliente");
-        return $stmt->execute([
-            ':id_usuario' => $id_usuario, 
-            ':id_cliente' => $id_cliente
-        ]);
-    } catch (PDOException $e) {
-        return false;
-    }
-}
-
-function deleteCliente($id_cliente) {
-    global $db;
-    try {
-        $stmt = $db->prepare("DELETE FROM cliente WHERE id_cliente = :id_cliente");
-        return $stmt->execute([':id_cliente' => $id_cliente]);
-    } catch (PDOException $e) {
-        return false;
-    }
-}
-
 function getUsuariosIds() {
     global $db;
     try {

@@ -13,25 +13,13 @@ switch ($action) {
         $status = "success";
         break;
 
-        case 'getUsuariosIds':
+    case 'getUsuariosIds':
         $data = getUsuariosIds();
         $status = "success";
         break;
     
     case 'insert':
         if (insertCliente($_post['id_usuario'])) {
-            $status = "success";
-        }
-        break;
-        
-    case 'update':
-        if (updateCliente($_post['id_cliente'], $_post['id_usuario'])) {
-            $status = "success";
-        }
-        break;
-        
-    case 'delete':
-        if (deleteCliente($_post['id_cliente'])) {
             $status = "success";
         }
         break;
