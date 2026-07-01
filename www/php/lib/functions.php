@@ -26,7 +26,16 @@ function getAllUsuarios() {
 function getAllClientes() {
     global $db;
     try {
-        $stmt = $db->prepare("SELECT id_cliente, id_usuario FROM cliente");
+        $stmt = $db->prepare("SELECT 
+                                c.id_cliente, 
+                                c.id_usuario, 
+                                u.nombre, 
+                                u.apellido, 
+                                u.correo, 
+                                u.telefono, 
+                                u.estado 
+                              FROM cliente c 
+                              INNER JOIN usuario u ON c.id_usuario = u.id_usuario");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {

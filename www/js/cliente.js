@@ -30,8 +30,12 @@ if (tbody) {
         if (json.status === "success") {
             tbody.innerHTML = json.data.map(c => `
                 <tr class="border-b">
-                    <td class="px-4 py-2">#${c.id_cliente}</td>
+                    <td class="px-4 py-2 font-bold">#${c.id_cliente}</td>
                     <td class="px-4 py-2">${c.id_usuario}</td>
+                    <td class="px-4 py-2">${c.nombre} ${c.apellido}</td>
+                    <td class="px-4 py-2">${c.correo}</td>
+                    <td class="px-4 py-2">${c.telefono}</td>
+                    <td class="px-4 py-2">${c.estado}</td>
                     <td class="px-4 py-2">
                         <a href="editar.html?id=${c.id_cliente}" class="text-blue-600 mr-2 hover:underline">Editar</a> | 
                         <button onclick="borrarCliente(${c.id_cliente})" class="text-red-600 ml-2 hover:underline cursor-pointer">Eliminar</button>
