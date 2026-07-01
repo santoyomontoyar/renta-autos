@@ -1,5 +1,6 @@
 <?php
 require_once 'db.php';
+
 function login($email, $password)
 {
   global $db;
@@ -13,12 +14,40 @@ function login($email, $password)
   }
   return false;
 }
+
+function mapUserStatus($status) {
+    $status = strtolower(trim((string)$status));
+
+    if ($status === 'active' || $status === 'activo') {
+        return 'Activo';
+    }
+
+    if ($status === 'inactive' || $status === 'inactivo') {
+        return 'Inactivo';
+    }
+
+    return 'Activo';
+}
+
 function getAllUsuarios() {
     global $db;
     $stmt = $db->prepare("SELECT
-    u.id_usuario, u.nombre, u.apellido, u.correo, u.telefono, u.estado, r.nombre AS rol
-                          FROM usuario u
-                          INNER JOIN rol r ON u.id_rol = r.id_rol");
+    u.id_usuario AS id_user,
+    u.correo AS username,
+    u.id_rol AS id_role,
+    CASE
+        WHEN u.estado = 'Activo' THEN 'Active'
+        WHEN u.estado = 'Inactivo' THEN 'Inactive'
+        ELSE 'Inactive'
+    END AS status,
+    r.nombre AS role_name,
+    u.nombre,
+    u.apellido,
+    u.telefono,
+    u.correo
+    FROM usuario u
+    INNER JOIN rol r ON u.id_rol = r.id_rol
+    ORDER BY u.id_usuario DESC");
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -83,24 +112,20 @@ function getAllRentas() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-
 function getAllTipoSeguro() {
     global $db;
-
     $stmt = $db->prepare("
         SELECT 
             id_tipo_seguro,
             nombre
         FROM tipo_seguro
     ");
-
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function getAllSeguros() {
     global $db;
-
     $stmt = $db->prepare("
         SELECT 
             s.id_seguro,
@@ -110,14 +135,12 @@ function getAllSeguros() {
         INNER JOIN tipo_seguro ts 
             ON s.id_tipo_seguro = ts.id_tipo_seguro
     ");
-
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function getAllModelos() {
     global $db;
-
     $stmt = $db->prepare("
         SELECT 
             id_modelo,
@@ -128,28 +151,24 @@ function getAllModelos() {
             costo_diario
         FROM modelo_vehiculo
     ");
-
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-
 function getAllRoles() {
     global $db;
-
     $stmt = $db->prepare("
         SELECT 
             id_rol,
             nombre
         FROM rol
     ");
-
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 function getAllsucursal() {
     global $db;
-
     $stmt = $db->prepare("
         SELECT 
             id_sucursal,
@@ -157,14 +176,12 @@ function getAllsucursal() {
             ciudad
         FROM sucursal
     ");
-
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function getAllFallas() {
     global $db;
-
     $stmt = $db->prepare("
         SELECT 
             id_falla,
@@ -174,19 +191,107 @@ function getAllFallas() {
             fecha_reporte
         FROM reporte_falla
     ");
-
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function insertUsuarios($datos){
-    $name = $datos["name"];
-    $lastname = $datos["lastname"];
-    $email = $datos["email"];
-    $phone = $datos["phone"];
-    $status = $datos["status"];
-    $rol = $datos["role"];
-    
-    $consulta = "INSERT INTO usuario (nombre, apellido, telefono, correo, password, estado, id_rol) VALUES ('$name','$lastname', '$phone', '$email','','$status', $rol )";
-    
+/* === MODIFICACIONES Y AGREGADOS PARA QUE TU CRUD SEA TOTALMENTE FUNCIONAL === */
+
+function insertUsuarios($datos) {
+    global $db;
+    try {
+        $email = trim($datos["email"] ?? $datos["username"] ?? '');
+        $name = trim($datos["name"] ?? '');
+        $lastname = trim($datos["lastname"] ?? '');
+        $phone = trim($datos["phone"] ?? '');
+        $status = mapUserStatus($datos["status"] ?? 'Active');
+        $rol = $datos["role"] ?? $datos["id_role"] ?? 1;
+        $password = $datos["password"] ?? '123456';
+
+        if ($name === '' && $email !== '') {
+            $name = explode('@', $email)[0];
+        }
+
+        if ($lastname === '') {
+            $lastname = '';
+        }
+
+        $stmt = $db->prepare("INSERT INTO usuario (nombre, apellido, telefono, correo, password, estado, id_rol)
+                              VALUES (:nombre, :apellido, :telefono, :correo, :password, :estado, :id_rol)");
+
+        $res = $stmt->execute([
+            ':nombre' => $name,
+            ':apellido' => $lastname,
+            ':telefono' => $phone,
+            ':correo' => $email,
+            ':password' => password_hash($password, PASSWORD_DEFAULT),
+            ':estado' => $status,
+            ':id_rol' => $rol
+        ]);
+
+        return $res ? ["status" => "success", "message" => "Usuario guardado exitosamente."] : false;
+    } catch (Exception $e) {
+        return ["status" => "error", "message" => $e->getMessage()];
+    }
 }
+
+function updateUsuario($datos) {
+    global $db;
+    try {
+        $id_usuario = $datos["id_user"] ?? $datos["id_usuario"] ?? 0;
+        $email = trim($datos["email"] ?? $datos["username"] ?? '');
+        $name = trim($datos["name"] ?? '');
+        $lastname = trim($datos["lastname"] ?? '');
+        $phone = trim($datos["phone"] ?? '');
+        $status = mapUserStatus($datos["status"] ?? 'Active');
+        $rol = $datos["role"] ?? $datos["id_role"] ?? 1;
+
+        if ($name === '' && $email !== '') {
+            $name = explode('@', $email)[0];
+        }
+
+        if ($lastname === '') {
+            $lastname = '';
+        }
+
+        $stmt = $db->prepare("UPDATE usuario SET 
+                                nombre = :nombre, 
+                                apellido = :apellido, 
+                                telefono = :telefono, 
+                                correo = :correo, 
+                                estado = :estado, 
+                                id_rol = :id_rol 
+                              WHERE id_usuario = :id_usuario");
+
+        $res = $stmt->execute([
+            ':nombre' => $name,
+            ':apellido' => $lastname,
+            ':telefono' => $phone,
+            ':correo' => $email,
+            ':estado' => $status,
+            ':id_rol' => $rol,
+            ':id_usuario' => $id_usuario
+        ]);
+
+        return $res ? ["status" => "success", "message" => "Usuario actualizado exitosamente."] : false;
+    } catch (Exception $e) {
+        return ["status" => "error", "message" => $e->getMessage()];
+    }
+}
+
+function deleteUsuario($id_usuario) {
+    global $db;
+    try {
+        if (empty($id_usuario) || !is_numeric($id_usuario)) {
+            return ["status" => "error", "message" => "ID de usuario inválido."];
+        }
+
+        $stmt = $db->prepare("DELETE FROM usuario WHERE id_usuario = :id_usuario");
+        $res = $stmt->execute([':id_usuario' => (int)$id_usuario]);
+
+        return $res ? ["status" => "success", "message" => "Usuario eliminado correctamente."] : false;
+    } catch (Exception $e) {
+        return ["status" => "error", "message" => $e->getMessage()];
+    }
+}
+?>

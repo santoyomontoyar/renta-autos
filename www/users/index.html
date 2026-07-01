@@ -1,36 +1,40 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
-  <title>Usuarios</title>
+  <title>Gestión de Usuarios</title>
 </head>
-<body class="p-8">
+<body class="p-8 bg-base-200 min-h-screen space-y-6">
 
-    <script src="../js/session.js"></script>
-    <script src="../js/navbar.js"></script>
+  <script src="../js/session.js"></script>
+  <script src="../js/navbar.js"></script>
 
+  <div class="max-w-6xl mx-auto card bg-base-100 shadow-xl p-6 space-y-4">
+    <div class="flex justify-between items-center border-b border-base-300 pb-4">
+      <h2 class="text-2xl font-bold text-primary flex items-center gap-2">👤 Directorio de Usuarios</h2>
+      <a href="insertar.html" class="btn btn-primary btn-sm font-semibold">+ Insertar Usuario</a>
+    </div>
 
-  <div class="overflow-x-auto">
-    <a href="insertar.html">insertar</a>
-    <table class="table table-zebra w-full" id="tablaUsuarios">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nombre</th>
-          <th>Apellido</th>
-          <th>Correo</th>
-          <th>Teléfono</th>
-          <th>Estado</th>
-          <th>Rol</th>
-          <th>acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
+    <div class="overflow-x-auto">
+      <table class="table table-zebra w-full" id="tablaUsuarios">
+        <thead>
+          <tr class="bg-base-300 text-base">
+            <th>ID</th>
+            <th>Nombre de Usuario (Correo)</th>
+            <th>Estado</th>
+            <th>Rol / Permisos</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          </tbody>
+      </table>
+    </div>
   </div>
-   <script src="../js/user.js"></script>
+
+  <script src="../js/user.js"></script>
 </body>
 </html>

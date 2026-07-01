@@ -1,66 +1,87 @@
-const btnGuardar = document.querySelector("#btnGuardar")
-const tbody = document.querySelector("#tbody")
+document.addEventListener("DOMContentLoaded", () => {
+    fetchUsers();
+});
 
-if(tbody){
-  fetch("../php/user.php", {
-    method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ action: "getAll" })
-})
-  .then(res => res.json())
-  .then(json => {
-    if (json.status === "success") {
-      const tbody = document.querySelector("#tbody");
-      json.data.forEach(u => {
-        tbody.innerHTML += `
-        <tr>
-        <td>${u.id_usuario}</td>
-        <td>${u.nombre}</td>
-            <td>${u.apellido}</td>
-            <td>${u.correo}</td>
-            <td>${u.telefono}</td>
-            <td>${u.estado}</td>
-            <td>${u.rol}</td>
-            <td>
-            <a href="editar.html"> editar </a>
-            <a href="eliminar.html"> eliminar </a>
-            </td>
-            </tr>
-            `;
-          });
+function fetchUsers() {
+    const tableBody = document.getElementById("tbody");
+
+    fetch("../php/user.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            action: "getAll" // Cambiado para coincidir con tu caso en el PHP
+        }),
+    })
+    .then(res => res.json())
+    .then((json) => {
+        tableBody.innerHTML = "";
+
+        if (json.status === "error" || !json.data) {
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-error font-semibold">${json.message || "Error al cargar"}</td></tr>`;
+            return;
         }
-      });
-    }
-      
-if(!tbody){
-  const Nombre = document.querySelector("#Nombre")
-  const Apellido = document.querySelector("#Apellido")
-  const Correo = document.querySelector("#Correo")
-  const telefono = document.querySelector("#telefono")
-  const Estado = document.querySelector("#Estado")
-  const Rol = document.querySelector("#Rol")
 
-  btnGuardar.addEventListener("click", e => {
-  e.preventDefault()
-  const payload = {
-    action: "insert",
-    name: Nombre.value,
-    lastname: Apellido.value,
-    email: Correo.value,
-    phone: telefono.value,
-    status: Estado.value,
-    role: Rol.value
-  }
+        const data = json.data;
 
-  fetch("../php/user.php", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  }).then(res => res.json())
-  .then(json => {
-    console.log(json)
-  })
-})
+        if (data.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-500">No hay usuarios registrados.</td></tr>`;
+            return;
+        }
+
+        data.forEach((user) => {
+            const tr = document.createElement("tr");
+            tr.className = "hover";
+
+            const statusBadgeColor = user.status === "Active" ? "badge-success" : "badge-error";
+
+            tr.innerHTML = `
+                <td class="font-bold">${user.id_user}</td>
+                <td class="font-medium text-base-content">${user.username}</td>
+                <td>
+                    <span class="badge ${statusBadgeColor} badge-sm font-semibold text-white">
+                        ${user.status}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge badge-neutral badge-outline font-medium">
+                        ${user.role_name || "Rol ID: " + user.id_role}
+                    </span>
+                </td>
+                <td class="text-center space-x-2">
+                    <button class="btn btn-warning btn-xs font-semibold" onclick="editarUsuario(${user.id_user})">Editar</button>
+                    <button class="btn btn-error btn-xs font-semibold text-white" onclick="eliminarUsuario(${user.id_user})">Eliminar</button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    })
+    .catch((error) => {
+        console.error("Error:", error);
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-error font-semibold">Error de conexión.</td></tr>`;
+    });
 }
+
+window.editarUsuario = function(id) {
+    window.location.href = `insertar.html?id_user=${id}`;
+};
+
+window.eliminarUsuario = function(id) {
+    if (confirm(`¿Seguro que deseas eliminar al usuario #${id}?`)) {
+        fetch("../php/user.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "delete", id_user: id })
+        })
+        .then(res => res.json())
+        .then(json => {
+            if (json.status === "success") {
+                alert("Usuario eliminado correctamente.");
+                fetchUsers();
+            } else {
+                alert("Error: " + json.message);
+            }
+        });
+    }
+};
