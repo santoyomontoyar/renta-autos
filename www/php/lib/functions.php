@@ -127,6 +127,7 @@ function getAllModelos() {
             categoria,
             costo_diario
         FROM modelo_vehiculo
+        WHERE estado = 1
     ");
 
     $stmt->execute();
@@ -216,4 +217,174 @@ function insertRenta($datos) {
         ':precio_cobrado'      => $datos['precio_cobrado'],
         ':estado'              => $datos['estado']
     ]);
+}
+}
+
+function getOneModelo($id_modelo){
+    global $db;
+    $stmt = $db->prepare("
+        SELECT 
+            id_modelo,
+            nombre_modelo,
+            marca,
+            year,
+            categoria,
+            costo_diario
+        FROM modelo_vehiculo
+        WHERE id_modelo = :id
+    ");
+
+    $stmt->bindParam(":id",$id_modelo);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+
+}
+function insertModelo($datos){
+
+    global $db;
+    $stmt = $db->prepare("
+    INSERT INTO modelo_vehiculo
+
+    (
+    nombre_modelo,
+    marca,
+    year,
+    categoria,
+    costo_diario
+    )
+
+    VALUES
+
+    (
+    :nombre,
+    :marca,
+    :year,
+    :categoria,
+    :costo
+    )
+
+    ");
+
+    $stmt->bindParam(":nombre",$datos["nombre_modelo"]);
+    $stmt->bindParam(":marca",$datos["marca"]);
+    $stmt->bindParam(":year",$datos["year"]);
+    $stmt->bindParam(":categoria",$datos["categoria"]);
+    $stmt->bindParam(":costo",$datos["costo_diario"]);
+
+    return $stmt->execute();
+
+}
+function updateModelo($datos){
+    global $db;
+    $stmt=$db->prepare("
+
+    UPDATE modelo_vehiculo SET
+    nombre_modelo=:nombre,
+    marca=:marca,
+    year=:year,
+    categoria=:categoria,
+    costo_diario=:costo
+    WHERE id_modelo=:id
+
+
+    ");
+
+    $stmt->bindParam(":nombre",$datos["nombre_modelo"]);
+    $stmt->bindParam(":marca",$datos["marca"]);
+    $stmt->bindParam(":year",$datos["year"]);
+    $stmt->bindParam(":categoria",$datos["categoria"]);
+    $stmt->bindParam(":costo",$datos["costo_diario"]);
+    $stmt->bindParam(":id",$datos["id_modelo"]);
+
+    return $stmt->execute();
+}
+
+function deleteModelo($id_modelo){
+    global $db;
+
+    $stmt=$db->prepare("
+    UPDATE modelo_vehiculo
+    SET estado = 0
+    WHERE id_modelo = :id
+    ");
+
+    $stmt->bindParam(":id",$id_modelo, PDO::PARAM_INT);
+         return $stmt->execute();
+    }
+    global $db;
+    $name = $datos["name"] ?? '';
+    $lastname = $datos["lastname"] ?? '';
+    $email = $datos["email"] ?? '';
+    $phone = $datos["phone"] ?? '';
+    $status = $datos["status"] ?? '';
+    $rol = $datos["role"] ?? 0;
+
+    try {
+        $stmt = $db->prepare("INSERT INTO usuario (nombre, apellido, telefono, correo, password, estado, id_rol)
+                               VALUES (:nombre, :apellido, :telefono, :correo, '', :estado, :id_rol)");
+        $stmt->bindParam(':nombre', $name);
+        $stmt->bindParam(':apellido', $lastname);
+        $stmt->bindParam(':telefono', $phone);
+        $stmt->bindParam(':correo', $email);
+        $stmt->bindParam(':estado', $status);
+        $stmt->bindParam(':id_rol', $rol, PDO::PARAM_INT);
+
+        if ($stmt->execute()) {
+            return $db->lastInsertId();
+        }
+    } catch (PDOException $e) {
+        error_log('insertUsuarios error: ' . $e->getMessage());
+    }
+    return false;
+}
+
+function getUsuarioById($id) {
+    global $db;
+    $stmt = $db->prepare("SELECT id_usuario, nombre, apellido, correo, telefono, estado, id_rol
+                           FROM usuario WHERE id_usuario = :id");
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function updateUsuario($datos){
+    global $db;
+    $id = $datos["id"] ?? 0;
+    $name = $datos["name"] ?? '';
+    $lastname = $datos["lastname"] ?? '';
+    $email = $datos["email"] ?? '';
+    $phone = $datos["phone"] ?? '';
+    $status = $datos["status"] ?? '';
+    $rol = $datos["role"] ?? 0;
+
+    try {
+        $stmt = $db->prepare("UPDATE usuario
+                               SET nombre = :nombre, apellido = :apellido, correo = :correo,
+                                   telefono = :telefono, estado = :estado, id_rol = :id_rol
+                               WHERE id_usuario = :id");
+        $stmt->bindParam(':nombre', $name);
+        $stmt->bindParam(':apellido', $lastname);
+        $stmt->bindParam(':correo', $email);
+        $stmt->bindParam(':telefono', $phone);
+        $stmt->bindParam(':estado', $status);
+        $stmt->bindParam(':id_rol', $rol, PDO::PARAM_INT);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+
+        return $stmt->execute();
+    } catch (PDOException $e) {
+        error_log('updateUsuario error: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function deleteUsuario($id) {
+    global $db;
+    try {
+        $stmt = $db->prepare("DELETE FROM usuario WHERE id_usuario = :id");
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        return $stmt->execute();
+    } catch (PDOException $e) {
+        error_log('deleteUsuario error: ' . $e->getMessage());
+        return false;
+    }
 }

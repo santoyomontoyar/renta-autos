@@ -17,12 +17,21 @@ switch ($action) {
     case 'insert':
     $data = insertUsuarios($_post);
     break;
+     case 'getOne':
+    $data = getUsuarioById($_post['id'] ?? 0);
+    break;
+    case 'update':
+    $data = updateUsuario($_post);
+    break;
+    case 'delete':
+    $data = deleteUsuario($_post['id'] ?? 0);
+    break;
   default:
     echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
-    break;
+    exit;
 }
 
-if ($data) {
+if ($data !== "" && $data !== false && $data !== null) {
   echo json_encode(['status' => 'success', 'data' => $data]);
 } else {
   echo json_encode(['status' => 'error', 'message' => 'Failed to fetch data']);
