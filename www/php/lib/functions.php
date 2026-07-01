@@ -25,13 +25,14 @@ function getAllUsuarios() {
 
 function getAllClientes() {
     global $db;
-    $stmt = $db->prepare("SELECT c.id_cliente, u.nombre, u.apellido, u.correo, u.telefono, u.estado 
-                          FROM cliente c 
-                          INNER JOIN usuario u ON c.id_usuario = u.id_usuario");
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $stmt = $db->prepare("SELECT id_cliente, id_usuario FROM cliente");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        return false;
+    }
 }
-
 function getAllDocumentos() {
     global $db;
     $stmt = $db->prepare("SELECT d.id_documento, d.tipo_documento, d.numero_documento, d.url_archivo, d.fecha_vencimiento,
@@ -189,4 +190,48 @@ function insertUsuarios($datos){
     
     $consulta = "INSERT INTO usuario (nombre, apellido, telefono, correo, password, estado, id_rol) VALUES ('$name','$lastname', '$phone', '$email','','$status', $rol )";
     
+}
+
+function insertCliente($id_usuario) {
+    global $db;
+    try {
+        $stmt = $db->prepare("INSERT INTO cliente (id_usuario) VALUES (:id_usuario)");
+        return $stmt->execute([':id_usuario' => $id_usuario]);
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+function updateCliente($id_cliente, $id_usuario) {
+    global $db;
+    try {
+        $stmt = $db->prepare("UPDATE cliente SET id_usuario = :id_usuario WHERE id_cliente = :id_cliente");
+        return $stmt->execute([
+            ':id_usuario' => $id_usuario, 
+            ':id_cliente' => $id_cliente
+        ]);
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+function deleteCliente($id_cliente) {
+    global $db;
+    try {
+        $stmt = $db->prepare("DELETE FROM cliente WHERE id_cliente = :id_cliente");
+        return $stmt->execute([':id_cliente' => $id_cliente]);
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+function getUsuariosIds() {
+    global $db;
+    try {
+        $stmt = $db->prepare("SELECT id_usuario FROM usuario");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        return false;
+    }
 }
