@@ -1,18 +1,9 @@
 const nav = document.createElement('nav');
 nav.className = 'navbar bg-neutral text-neutral-content px-6 shadow-md';
 nav.innerHTML = `
-  <div class="flex-1 flex items-center gap-3">
+  <div class="flex-1">
     <span class="text-xl font-bold">${document.title}</span>
-
-    <a href="./editar.html"
-       class="w-8 h-8 bg-green-500 hover:bg-green-600
-              text-white font-bold text-lg
-              flex items-center justify-center
-              rounded transition"
-       title="Agregar">
-        +
-    </a>
-</div>
+  </div>
   <div class="flex-none">
     <ul class="menu menu-horizontal px-1 gap-1">
       <li><a href="/users">Usuarios</a></li>
