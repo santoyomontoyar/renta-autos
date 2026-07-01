@@ -43,6 +43,20 @@ function getAllDocumentos() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function insertDocumentos($datos){
+    
+    $id_cliente = $datos["id_cliente"];
+    $tipo_documento = $datos["tipo_documento"];
+    $numero_documento = $datos["numero_documento"];
+    $url_archivo = $datos["url_archivo"];
+    $fecha_vencimiento = $datos["fecha_vencimiento"];
+
+    $consultaDocu = "INSERT INTO documento_cliente (id_cliente, tipo_documento, numero_documento, url_archivo, fecha_vencimiento) VALUES ('$id_cliente', '$tipo_documento', '$numero_documento', '$url_archivo', '$fecha_vencimiento')";
+    global $db;
+    $stmt = $db->prepare($consultaDocu);
+    $stmt->execute();
+}
+
 function getAllVehiculos() {
     global $db;
     $stmt = $db->prepare("SELECT v.id_vehiculo, v.placa, v.estado,
