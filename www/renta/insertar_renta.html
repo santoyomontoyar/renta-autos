@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <title>Registrar Renta</title>
+</head>
+<body class="p-4 md:p-8 bg-base-200 min-h-screen flex items-center justify-center font-sans">
+
+  <div class="card bg-base-100 shadow-xl p-6 w-full max-w-4xl">
+    <div class="border-b border-base-300 pb-4 mb-6">
+      <h2 class="text-2xl font-bold text-base-content flex items-center gap-2">
+        🚗 Registrar Nueva Renta
+      </h2>
+      <p class="text-sm text-base-content/60">Selecciona las opciones correspondientes. El sistema calculará el precio final automáticamente.</p>
+    </div>
+    
+    <form id="formnuevarenta" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div> 
+            <label class="label"><span class="label-text font-semibold">Cliente</span></label>
+            <select id="id_cliente" required class="select select-bordered w-full">
+              <option value="" disabled selected>Selecciona un cliente</option>
+            </select>
+        </div>
+        <div> 
+            <label class="label"><span class="label-text font-semibold">Vehículo</span></label>
+            <select id="id_vehiculo" required class="select select-bordered w-full">
+              <option value="" disabled selected>Selecciona un vehículo</option>
+            </select>
+        </div>
+        <div> 
+            <label class="label"><span class="label-text font-semibold">Tipo de Seguro</span></label>
+            <select id="id_seguro" required class="select select-bordered w-full">
+              <option value="" disabled selected>Selecciona un seguro</option>
+            </select>
+        </div>
+
+        <div> 
+            <label class="label"><span class="label-text font-semibold">Sucursal Origen</span></label>
+            <select id="id_sucursal_origen" required class="select select-bordered w-full">
+              <option value="" disabled selected>Selecciona origen</option>
+            </select>
+        </div>
+        <div class="md:col-span-2"> 
+            <label class="label"><span class="label-text font-semibold">Sucursal Destino</span></label>
+            <select id="id_sucursal_destino" required class="select select-bordered w-full">
+              <option value="" disabled selected>Selecciona destino</option>
+            </select>
+        </div>
+
+        <div> 
+            <label class="label"><span class="label-text font-semibold">Fecha Inicio</span></label>
+            <input type="datetime-local" id="fecha_inicio" required class="input input-bordered w-full">
+        </div>
+        <div class="md:col-span-2"> 
+            <label class="label"><span class="label-text font-semibold">Fecha Fin</span></label>
+            <input type="datetime-local" id="fecha_fin" required class="input input-bordered w-full">
+        </div>
+
+        <div> 
+            <label class="label"><span class="label-text font-semibold">Monto Depósito</span></label>
+            <input type="number" step="0.01" id="monto_deposito" required class="input input-bordered w-full" placeholder="0.00">
+        </div>
+        <div class="md:col-span-2"> 
+            <label class="label"><span class="label-text font-semibold">Precio Total Cobrado (Calculado Automático)</span></label>
+            <input type="number" step="0.01" id="precio_cobrado" readonly class="input input-bordered w-full bg-base-200 font-bold text-primary" placeholder="El total se calculará solo al llenar fechas y catálogos">
+        </div>
+
+        <div class="md:col-span-3 flex justify-end gap-3 pt-6 border-t border-base-300 mt-4">
+            <button type="button" onclick="window.location.href='index.html'" class="btn btn-outline px-6">Cancelar</button>
+            <button id="btnGuardar" type="button" class="btn btn-primary px-8">💾 Guardar Renta</button>
+        </div>
+    </form>
+  </div>
+
+  <script src="../js/renta.js"></script>
+</body>
+</html>

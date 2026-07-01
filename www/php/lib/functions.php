@@ -179,6 +179,7 @@ function getAllFallas() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+
 function insertUsuarios($datos){
     $name = $datos["name"];
     $lastname = $datos["lastname"];
@@ -188,5 +189,31 @@ function insertUsuarios($datos){
     $rol = $datos["role"];
     
     $consulta = "INSERT INTO usuario (nombre, apellido, telefono, correo, password, estado, id_rol) VALUES ('$name','$lastname', '$phone', '$email','','$status', $rol )";
+} 
+
+function insertRenta($datos) {
+    global $db;
+    $stmt = $db->prepare("
+        INSERT INTO renta (
+            id_cliente, id_vehiculo, id_seguro, id_sucursal_origen, id_sucursal_destino, 
+            fecha_inicio, fecha_fin, monto_deposito, estado_deposito, precio_cobrado, estado
+        ) VALUES (
+            :id_cliente, :id_vehiculo, :id_seguro, :id_sucursal_origen, :id_sucursal_destino, 
+            :fecha_inicio, :fecha_fin, :monto_deposito, :estado_deposito, :precio_cobrado, :estado
+        )
+    ");
     
+    return $stmt->execute([
+        ':id_cliente'          => $datos['id_cliente'],
+        ':id_vehiculo'         => $datos['id_vehiculo'],
+        ':id_seguro'           => $datos['id_seguro'],
+        ':id_sucursal_origen'  => $datos['id_sucursal_origen'],
+        ':id_sucursal_destino' => $datos['id_sucursal_destino'],
+        ':fecha_inicio'        => $datos['fecha_inicio'],
+        ':fecha_fin'           => $datos['fecha_fin'],
+        ':monto_deposito'      => $datos['monto_deposito'],
+        ':estado_deposito'     => $datos['estado_deposito'],
+        ':precio_cobrado'      => $datos['precio_cobrado'],
+        ':estado'              => $datos['estado']
+    ]);
 }
