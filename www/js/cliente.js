@@ -11,14 +11,13 @@ function cargarSelectIDs(selectElement) {
     .then(res => res.json())
     .then(json => {
         if (json.status === "success") {
-            selectElement.innerHTML = '<option value="">Selecciona un ID...</option>';
+            selectElement.innerHTML = '<option value="">Selecciona un usuario...</option>';
             json.data.forEach(u => {
-                selectElement.innerHTML += `<option value="${u.id_usuario}">${u.id_usuario}</option>`;
+                selectElement.innerHTML += `<option value="${u.id_usuario}">${u.nombre} ${u.apellido} (ID: ${u.id_usuario})</option>`;
             });
         }
     });
 }
-
 if (tbody) {
     fetch("../php/cliente.php", {
         method: "POST",

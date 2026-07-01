@@ -237,7 +237,7 @@ function deleteCliente($id_cliente) {
 function getUsuariosIds() {
     global $db;
     try {
-        $stmt = $db->prepare("SELECT id_usuario FROM usuario");
+        $stmt = $db->prepare("SELECT id_usuario, nombre, apellido FROM usuario");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
