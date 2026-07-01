@@ -98,6 +98,43 @@ function getAllTipoSeguro() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function updateTipoSeguro($id, $nombre) {
+    global $db;
+
+    $stmt = $db->prepare("
+        UPDATE tipo_seguro
+        SET nombre = :nombre
+        WHERE id_tipo_seguro = :id
+    ");
+
+    $stmt->bindParam(':nombre', $nombre);
+    $stmt->bindParam(':id', $id);
+
+    return $stmt->execute();
+}
+
+function createTipoSeguro($nombre) {
+    global $db;
+
+    $stmt = $db->prepare("INSERT INTO tipo_seguro (nombre) VALUES (:nombre)");
+    $stmt->bindParam(':nombre', $nombre);
+
+    return $stmt->execute();
+}
+
+function deleteTipoSeguro($id){
+    global $db;
+
+    $stmt = $db->prepare("
+        DELETE FROM tipo_seguro
+        WHERE id_tipo_seguro = :id
+    ");
+
+    $stmt->bindParam(":id", $id);
+
+    return $stmt->execute();
+}
+
 function getAllSeguros() {
     global $db;
 
