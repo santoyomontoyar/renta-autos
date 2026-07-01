@@ -35,8 +35,45 @@ fetch("../php/modelo_vehiculo.php", {
                     $${d.costo_diario}
                 </td>
 
+                <td class="px-6 py-4">
+                <div claas="flex gap-2">
+                <a href="editar.html?id=${d.id_modelo}"
+                class="btn btn-sm btn-info mr-2"> 
+                editar
+                </a>
+
+               <button onclick="eliminar(${d.id_modelo})"
+                class="btn btn-sm btn-error"> 
+                eliminar
+               </button>
+               </div>
+               </td>
+
             </tr>
         `).join('');
     }
 })
-.catch(err => console.error("Error:", err));
+
+function eliminar(id){
+    fetch("../php/modelo_vehiculo.php",{
+        method: "POST",
+        headers:{
+        "Content-Type":"application/json"
+      },
+
+      body:JSON.stringify({
+        action:"delete",
+        id_modelo:id
+
+      })
+    })
+
+    .then(res=>res.json())
+    .then(json=>{
+      if(json.status==="success"){
+        location.reload();
+
+         }
+     })
+    
+}

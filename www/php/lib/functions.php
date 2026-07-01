@@ -127,6 +127,7 @@ function getAllModelos() {
             categoria,
             costo_diario
         FROM modelo_vehiculo
+        WHERE estado = 1
     ");
 
     $stmt->execute();
@@ -180,6 +181,108 @@ function getAllFallas() {
 }
 
 function insertUsuarios($datos){
+    $name = $datos["name"];
+    $lastname = $datos["lastname"];
+    $email = $datos["email"];
+    $phone = $datos["phone"];
+    $status = $datos["status"];
+    $rol = $datos["role"];
+    
+    $consulta = "INSERT INTO usuario (nombre, apellido, telefono, correo, password, estado, id_rol) VALUES ('$name','$lastname', '$phone', '$email','','$status', $rol )";
+    
+}
+
+function getOneModelo($id_modelo){
+    global $db;
+    $stmt = $db->prepare("
+        SELECT 
+            id_modelo,
+            nombre_modelo,
+            marca,
+            year,
+            categoria,
+            costo_diario
+        FROM modelo_vehiculo
+        WHERE id_modelo = :id
+    ");
+
+    $stmt->bindParam(":id",$id_modelo);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+
+}
+function insertModelo($datos){
+
+    global $db;
+    $stmt = $db->prepare("
+    INSERT INTO modelo_vehiculo
+
+    (
+    nombre_modelo,
+    marca,
+    year,
+    categoria,
+    costo_diario
+    )
+
+    VALUES
+
+    (
+    :nombre,
+    :marca,
+    :year,
+    :categoria,
+    :costo
+    )
+
+    ");
+
+    $stmt->bindParam(":nombre",$datos["nombre_modelo"]);
+    $stmt->bindParam(":marca",$datos["marca"]);
+    $stmt->bindParam(":year",$datos["year"]);
+    $stmt->bindParam(":categoria",$datos["categoria"]);
+    $stmt->bindParam(":costo",$datos["costo_diario"]);
+
+    return $stmt->execute();
+
+}
+function updateModelo($datos){
+    global $db;
+    $stmt=$db->prepare("
+
+    UPDATE modelo_vehiculo SET
+    nombre_modelo=:nombre,
+    marca=:marca,
+    year=:year,
+    categoria=:categoria,
+    costo_diario=:costo
+    WHERE id_modelo=:id
+
+
+    ");
+
+    $stmt->bindParam(":nombre",$datos["nombre_modelo"]);
+    $stmt->bindParam(":marca",$datos["marca"]);
+    $stmt->bindParam(":year",$datos["year"]);
+    $stmt->bindParam(":categoria",$datos["categoria"]);
+    $stmt->bindParam(":costo",$datos["costo_diario"]);
+    $stmt->bindParam(":id",$datos["id_modelo"]);
+
+    return $stmt->execute();
+}
+
+function deleteModelo($id_modelo){
+    global $db;
+
+    $stmt=$db->prepare("
+    UPDATE modelo_vehiculo
+    SET estado = 0
+    WHERE id_modelo = :id
+    ");
+
+    $stmt->bindParam(":id",$id_modelo, PDO::PARAM_INT);
+         return $stmt->execute();
+    }
     global $db;
     $name = $datos["name"] ?? '';
     $lastname = $datos["lastname"] ?? '';
