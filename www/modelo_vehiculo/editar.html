@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Editar modelo</title>
+</head>
+
+<body>
+<h1>Editar vehículo</h1>
+<form id="formEditar">
+
+<input type="hidden" id="id_modelo">
+<label>Nombre modelo</label>
+<input type="text" id="nombre_modelo">
+<br><br>
+
+<label>Marca</label>
+<input type="text" id="marca">
+<br><br>
+
+<label>Año</label>
+<input type="number" id="year">
+<br><br>
+
+<label>Categoría</label>
+<input type="text" id="categoria">
+<br><br>
+
+<label>Costo diario</label>
+<input type="number" id="costo_diario">
+<br><br>
+
+<button type="submit">
+Guardar cambios
+
+</button>
+</form>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+fetch("../php/modelo_vehiculo.php",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+
+},
+
+body:JSON.stringify({
+action:"getOne",
+id_modelo:id
+
+})
+
+})
+
+.then(res=>res.json())
+.then(json=>{
+console.log(json);
+if(json.status==="success"){
+let v = json.data;
+
+document.querySelector("#id_modelo").value = v.id_modelo;
+document.querySelector("#nombre_modelo").value = v.nombre_modelo;
+document.querySelector("#marca").value = v.marca;
+document.querySelector("#year").value = v.year;
+document.querySelector("#categoria").value = v.categoria;
+document.querySelector("#costo_diario").value = v.costo_diario;
+
+}
+
+});
+
+document.querySelector("#formEditar")
+
+.addEventListener("submit", function(e){
+
+e.preventDefault();
+fetch("../php/modelo_vehiculo.php",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+
+},
+
+body:JSON.stringify({
+action:"update",
+id_modelo:id,
+
+nombre_modelo:
+document.querySelector("#nombre_modelo").value,
+
+marca:
+document.querySelector("#marca").value,
+
+year:
+document.querySelector("#year").value,
+
+categoria:
+document.querySelector("#categoria").value,
+
+costo_diario:
+document.querySelector("#costo_diario").value
+
+})
+})
+.then(res=>res.json())
+.then(json=>{
+
+console.log(json);
+if(json.status==="success"){
+alert("Modelo actualizado");
+window.location="index.html";
+}
+
+});
+});
+
+</script>
+</body>
+</html>
