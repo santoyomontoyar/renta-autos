@@ -83,19 +83,71 @@ function getAllRentas() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-
 function getAllTipoSeguro() {
     global $db;
 
     $stmt = $db->prepare("
-        SELECT 
-            id_tipo_seguro,
-            nombre
+        SELECT id_tipo_seguro, nombre, descripcion
         FROM tipo_seguro
     ");
-
     $stmt->execute();
+
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getTipoSeguro($id) {
+    global $db;
+
+    $stmt = $db->prepare("
+        SELECT
+            id_tipo_seguro,
+            nombre,
+            descripcion
+        FROM tipo_seguro
+        WHERE id_tipo_seguro = :id
+    ");
+
+    $stmt->bindParam(':id', $id);
+    $stmt->execute();
+
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function updateTipoSeguro($id, $nombre) {
+    global $db;
+
+    $stmt = $db->prepare("
+        UPDATE tipo_seguro
+        SET nombre = :nombre
+        WHERE id_tipo_seguro = :id
+    ");
+
+    $stmt->bindParam(':nombre', $nombre);
+    $stmt->bindParam(':id', $id);
+
+    return $stmt->execute();
+}
+
+function createTipoSeguro($nombre) {
+    global $db;
+
+    $stmt = $db->prepare("INSERT INTO tipo_seguro (nombre) VALUES (:nombre)");
+    $stmt->bindParam(':nombre', $nombre);
+
+    return $stmt->execute();
+}
+
+function deleteTipoSeguro($id){
+    global $db;
+
+    $stmt = $db->prepare("
+        DELETE FROM tipo_seguro
+        WHERE id_tipo_seguro = :id
+    ");
+
+    $stmt->bindParam(":id", $id);
+
+    return $stmt->execute();
 }
 
 function getAllSeguros() {
