@@ -151,7 +151,6 @@ function getAllModelos() {
             categoria,
             costo_diario
         FROM modelo_vehiculo
-        WHERE estado = 1
     ");
 
     $stmt->execute();
