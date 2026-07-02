@@ -25,13 +25,23 @@ function getAllUsuarios() {
 
 function getAllClientes() {
     global $db;
-    $stmt = $db->prepare("SELECT c.id_cliente, u.nombre, u.apellido, u.correo, u.telefono, u.estado 
-                          FROM cliente c 
-                          INNER JOIN usuario u ON c.id_usuario = u.id_usuario");
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $stmt = $db->prepare("SELECT 
+                                c.id_cliente, 
+                                c.id_usuario, 
+                                u.nombre, 
+                                u.apellido, 
+                                u.correo, 
+                                u.telefono, 
+                                u.estado 
+                              FROM cliente c 
+                              INNER JOIN usuario u ON c.id_usuario = u.id_usuario");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        return false;
+    }
 }
-
 function getAllDocumentos() {
     global $db;
     $stmt = $db->prepare("SELECT d.id_documento, d.tipo_documento, d.numero_documento, d.url_archivo, d.fecha_vencimiento,
@@ -218,6 +228,14 @@ function insertRenta($datos) {
         )
     ");
     
+}
+
+function insertCliente($id_usuario) {
+    global $db;
+    try {
+        $stmt = $db->prepare("INSERT INTO cliente (id_usuario) VALUES (:id_usuario)");
+        return $stmt->execute([':id_usuario' => $id_usuario]);
+    } catch (PDOException $e) {
     return $stmt->execute([
         ':id_cliente'          => $datos['id_cliente'],
         ':id_vehiculo'         => $datos['id_vehiculo'],
@@ -391,6 +409,16 @@ function updateUsuario($datos){
     }
 }
 
+function getUsuariosIds() {
+    global $db;
+    try {
+        $stmt = $db->prepare("SELECT id_usuario, nombre, apellido FROM usuario");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        return false;
+    }
+}
 function deleteUsuario($id) {
     global $db;
     try {
