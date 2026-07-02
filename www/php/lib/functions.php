@@ -368,7 +368,7 @@ function deleteModelo($id_modelo){
         error_log('insertUsuarios error: ' . $e->getMessage());
     }
     return false;
-}
+
 
 function getUsuarioById($id) {
     global $db;
