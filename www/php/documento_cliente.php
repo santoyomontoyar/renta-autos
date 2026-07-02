@@ -9,6 +9,9 @@ switch ($action) {
     case 'getAll':
         $data = getAllDocumentos();
         break;
+    case 'insert':
+        $data = insertDocumentos($_post);
+        break;
     default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         exit;
