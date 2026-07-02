@@ -24,8 +24,8 @@ if (tbody) {
               <td>${u.estado}</td>
               <td>${u.rol}</td>
               <td>
-              <span style="font-weight:bold; cursor:default;"> editar </span>
-              <span style="font-weight:bold; cursor:default;"> eliminar </span>
+              <a href="editar.html?id=${u.id_usuario}"> editar </a>
+              <a href="eliminar.html?id=${u.id_usuario}"> eliminar </a>
               </td>
               </tr>
               `;
