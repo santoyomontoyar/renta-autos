@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <title>Tipos de Seguro</title>
+</head>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+
+    <div class="w-full max-w-md bg-white shadow-lg rounded-2xl p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+            Tipo de Seguro
+        </h1>
+
+        <form id="formTipoSeguro" class="space-y-4">
+            <input type="hidden" id="id_tipo_seguro">
+
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-700">
+                    Nombre
+                </label>
+                <input
+                    type="text"
+                    id="nombre"
+                    class="input input-bordered w-full"
+                    placeholder="Escribe el nombre">
+            </div>
+
+            <button type="submit" id="btnGuardar" class="btn btn-primary w-full">
+                Guardar
+            </button>
+        </form>
+    </div>
+
+    <script src="../js/editar_tipo_seguro.js"></script>
+</body>
+</html>
