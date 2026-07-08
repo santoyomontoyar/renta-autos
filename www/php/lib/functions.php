@@ -137,26 +137,34 @@ function getTipoSeguro($id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function updateTipoSeguro($id, $nombre) {
+function updateTipoSeguro($id, $nombre, $descripcion) {
     global $db;
 
     $stmt = $db->prepare("
         UPDATE tipo_seguro
-        SET nombre = :nombre
+        SET
+            nombre = :nombre,
+            descripcion = :descripcion
         WHERE id_tipo_seguro = :id
     ");
 
-    $stmt->bindParam(':nombre', $nombre);
-    $stmt->bindParam(':id', $id);
+    $stmt->bindParam(":nombre", $nombre);
+    $stmt->bindParam(":descripcion", $descripcion);
+    $stmt->bindParam(":id", $id);
 
     return $stmt->execute();
 }
 
-function createTipoSeguro($nombre) {
+function createTipoSeguro($nombre, $descripcion) {
     global $db;
 
-    $stmt = $db->prepare("INSERT INTO tipo_seguro (nombre) VALUES (:nombre)");
-    $stmt->bindParam(':nombre', $nombre);
+    $stmt = $db->prepare("
+        INSERT INTO tipo_seguro (nombre, descripcion)
+        VALUES (:nombre, :descripcion)
+    ");
+
+    $stmt->bindParam(":nombre", $nombre);
+    $stmt->bindParam(":descripcion", $descripcion);
 
     return $stmt->execute();
 }
