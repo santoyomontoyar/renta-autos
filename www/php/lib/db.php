@@ -1,8 +1,8 @@
 <?php
-$user_db = "root";
-$password_db = "";
-$host_db = "localhost";
-$name_db = "renta_autos";
+$user_db = "app_user";
+$password_db = "app_password";
+$host_db = "mysql";
+$name_db = "app_db";
 
 try {
   $db = new PDO("mysql:host=$host_db;dbname=$name_db", $user_db, $password_db);
