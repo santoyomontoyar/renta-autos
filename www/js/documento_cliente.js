@@ -19,9 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         <td class="px-6 py-4 text-sm font-medium text-gray-700">${(d.tipo_documento || '').replace('_', ' ')}</td>
                         <td class="px-6 py-4 text-sm font-mono text-gray-600">${d.numero_documento}</td>
                         <td class="px-6 py-4 text-sm text-gray-500">${d.fecha_vencimiento}</td>
-                        <td class="px-6 py-4 text-sm">
-                            <a href="${d.url_archivo}" target="_blank" class="text-blue-600 hover:underline font-semibold">👁️ Ver</a>
-                        </td>
                         <td class="px-6 py-4 text-sm px-4 py-2 space-x-2">
                             <a href="#" class="text-green-600 hover:underline font-semibold">Editar</a>
                             <a href="#" class="text-red-600 hover:underline font-semibold">Eliminar</a>
