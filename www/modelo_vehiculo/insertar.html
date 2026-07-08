@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Insertar modelo</title>
+</head>
+
+<body>
+
+<h1>Insertar modelo</h1>
+
+<form id="formInsertar">
+
+<label>Nombre modelo</label>
+<input type="text" id="nombre_modelo">
+<br><br>
+
+<label>Marca</label>
+<input type="text" id="marca">
+<br><br>
+
+<label>Año</label>
+<input type="number" id="year">
+<br><br>
+
+<label>Categoría</label>
+<select id="categoria">
+
+<option value="Sedan">Sedan</option>
+<option value="SUV">SUV</option>
+<option value="Pickup">Pickup</option>
+<option value="Hatchback">Hatchback</option>
+<option value="Van">Van</option>
+<option value="Convertible">Convertible</option>
+
+</select>
+<br><br>
+
+<label>Costo diario</label>
+<input type="number" id="costo_diario">
+<br><br>
+
+<button type="submit">
+Guardar
+</button>
+</form>
+
+<script>
+
+document.querySelector("#formInsertar")
+.addEventListener("submit", function(e){
+
+    e.preventDefault();
+
+    fetch("../php/modelo_vehiculo.php",{
+
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+            action:"insert",
+            nombre_modelo:
+            document.querySelector("#nombre_modelo").value,
+
+            marca:
+            document.querySelector("#marca").value,
+
+            year:
+            document.querySelector("#year").value,
+
+            categoria:
+            document.querySelector("#categoria").value,
+
+            costo_diario:
+            document.querySelector("#costo_diario").value
+
+        })
+
+    })
+
+    .then(res=>res.json())
+    .then(json=>{
+        console.log("Respuesta PHP", json);
+        if(json.status==="success"){
+            alert("Modelo insertado");
+            window.location="index.html";
+        }else{
+            alert(json.message);
+
+        }
+
+    });
+
+});
+
+</script>
+
+</body>
+</html>
