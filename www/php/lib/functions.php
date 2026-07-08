@@ -144,7 +144,7 @@ function getAllTipoSeguro() {
     global $db;
 
     $stmt = $db->prepare("
-        SELECT id_tipo_seguro, nombre
+        SELECT id_tipo_seguro, nombre, descripcion
         FROM tipo_seguro
     ");
     $stmt->execute();
