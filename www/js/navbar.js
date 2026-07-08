@@ -4,7 +4,7 @@ nav.innerHTML = `
   <div class="flex-1 flex items-center gap-3">
     <span class="text-xl font-bold">${document.title}</span>
 
-    <a href="./editar.html"
+    <a href="./insertar.html"
        class="w-8 h-8 bg-green-500 hover:bg-green-600
               text-white font-bold text-lg
               flex items-center justify-center
