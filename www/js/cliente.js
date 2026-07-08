@@ -1,24 +1,10 @@
 const tbody = document.querySelector("#tbody");
 const formNuevoCliente = document.querySelector("#formNuevoCliente");
 
-function cargarSelectIDs(selectElement) {
-    fetch("../php/cliente.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "getUsuariosIds" })
-    })
-    .then(res => res.json())
-    .then(json => {
-        if (json.status === "success") {
-            selectElement.innerHTML = '<option value="">Selecciona un usuario...</option>';
-            json.data.forEach(u => {
-                selectElement.innerHTML += `<option value="${u.id_usuario}">${u.nombre} ${u.apellido} (ID: ${u.id_usuario})</option>`;
-            });
-        }
-    });
-}
+if (tbody) cargarClientes();
+if (formNuevoCliente) iniciarFormulario();
 
-if (tbody) {
+function cargarClientes() {
     fetch("../php/cliente.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -27,7 +13,9 @@ if (tbody) {
     .then(res => res.json())
     .then(json => {
         if (json.status === "success") {
-            tbody.innerHTML = json.data.map(c => `
+            tbody.innerHTML = "";
+            json.data.forEach(c => {
+                tbody.innerHTML += `
                 <tr class="border-b">
                     <td class="px-4 py-2 font-bold">#${c.id_cliente}</td>
                     <td class="px-4 py-2">${c.id_usuario}</td>
@@ -37,19 +25,31 @@ if (tbody) {
                     <td class="px-4 py-2">${c.estado}</td>
                     <td class="px-4 py-2">
                         <a href="editar.html" class="text-blue-600 mr-2 hover:underline">editar</a> | 
-                        <a href="eliminar.html" class="text-red-600 ml-2 hover:underline">eliminar</a>
+                        <a href="#" data-id="${c.id_cliente}" class="elim text-red-600 ml-2 hover:underline">eliminar</a>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+            });
         }
     });
 }
-
-if (formNuevoCliente) {
+function iniciarFormulario() {
     const btnGuardar = document.querySelector("#btnGuardar");
     const selectUsuario = document.querySelector("#id_usuario");
     
-    cargarSelectIDs(selectUsuario);
+    fetch("../php/cliente.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "getUsuariosIds" })
+    })
+    .then(res => res.json())
+    .then(json => {
+        if (json.status === "success") {
+            selectUsuario.innerHTML = '<option value="">Selecciona un usuario...</option>';
+            json.data.forEach(u => {
+                selectUsuario.innerHTML += `<option value="${u.id_usuario}">${u.nombre} ${u.apellido} (ID: ${u.id_usuario})</option>`;
+            });
+        }
+    });
 
     btnGuardar.addEventListener("click", (e) => {
         e.preventDefault();
@@ -72,5 +72,42 @@ if (formNuevoCliente) {
                 alert("Error al insertar. Es posible que este ID ya esté registrado como cliente.");
             }
         });
+    });
+}
+
+if (tbody) {
+    tbody.addEventListener('click', function(evento) {
+        if (evento.target && evento.target.matches('.elim')) {
+            evento.preventDefault();
+            const id = evento.target.getAttribute('data-id');
+            
+            Swal.fire({
+                title: "¿Estás seguro de eliminar este registro?",
+                text: "¡No vas a poder revertir esto!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Confirmar",
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch("../php/cliente.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: "delete_cliente", id_cliente: id })
+                    })
+                    .then(res => res.json())
+                    .then(json => {
+                        if (json.status === "success") {
+                            Swal.fire("Borrado", "Tu registro ha sido eliminado.", "success");
+                            cargarClientes();
+                        } else {
+                            Swal.fire("Error", json.message, "error");
+                        }
+                    });
+                } 
+            });
+        }
     });
 }

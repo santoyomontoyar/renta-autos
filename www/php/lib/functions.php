@@ -366,6 +366,7 @@ function insertRenta($datos) {
             :fecha_inicio, :fecha_fin, :monto_deposito, :estado_deposito, :precio_cobrado, :estado
         )
     ");
+        return $stmt->execute([
     
 }
 
@@ -411,6 +412,38 @@ function insertCliente($id_usuario) {
         ':precio_cobrado'      => $datos['precio_cobrado'],
         ':estado'              => $datos['estado']
     ]);
+    
+}
+
+function insertar_rol($datos){
+    global $db;
+    $name = $datos["name"];
+
+    $consulta = "INSERT INTO rol (nombre) VALUES ('$name')";
+    $db->exec($consulta);
+
+    return true;
+}
+
+function deleteRol($id_rol) {
+    global $db;
+    try {
+        $stmt = $db->prepare("DELETE FROM rol WHERE id_rol = :id_rol");
+        $stmt->execute(['id_rol' => $id_rol]);
+        return $stmt->rowCount() > 0;
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23000) {
+            return "en_uso";
+        }
+        return false;
+    }
+}
+function insertCliente($id_usuario) {
+    global $db;
+    try {
+        $stmt = $db->prepare("INSERT INTO cliente (id_usuario) VALUES (:id_usuario)");
+        return $stmt->execute([':id_usuario' => $id_usuario]);
+    } catch (PDOException $e) {
 }
 }
 
@@ -479,8 +512,6 @@ function updateModelo($datos){
     categoria=:categoria,
     costo_diario=:costo
     WHERE id_modelo=:id
-
-
     ");
 
     $stmt->bindParam(":nombre",$datos["nombre_modelo"]);
@@ -565,4 +596,10 @@ function deleteUsuario($id) {
         error_log('deleteUsuario error: ' . $e->getMessage());
         return false;
     }
+}
+function deleteCliente($id_cliente) {
+    global $db;
+    $stmt = $db->prepare("DELETE FROM cliente WHERE id_cliente = :id_cliente");
+    $stmt->execute(['id_cliente' => $id_cliente]);
+    return $stmt->rowCount() > 0;
 }
