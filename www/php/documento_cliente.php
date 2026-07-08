@@ -12,6 +12,15 @@ switch ($action) {
     case 'insert':
         $data = insertDocumentos($_post);
         break;
+    case 'update':
+        $data = updateDocumentos($_post);
+        break;
+    case 'getById':
+        $data = getDocumentoById($_post['id_documento']);
+        break;    
+    case 'delete':
+        $data = deleteDocumentos($_post['id_documento']);
+        break;        
     default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         exit;
