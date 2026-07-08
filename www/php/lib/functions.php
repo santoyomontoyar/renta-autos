@@ -480,8 +480,6 @@ function updateModelo($datos){
     categoria=:categoria,
     costo_diario=:costo
     WHERE id_modelo=:id
-
-
     ");
 
     $stmt->bindParam(":nombre",$datos["nombre_modelo"]);
@@ -566,4 +564,10 @@ function deleteUsuario($id) {
         error_log('deleteUsuario error: ' . $e->getMessage());
         return false;
     }
+}
+function deleteCliente($id_cliente) {
+    global $db;
+    $stmt = $db->prepare("DELETE FROM cliente WHERE id_cliente = :id_cliente");
+    $stmt->execute(['id_cliente' => $id_cliente]);
+    return $stmt->rowCount() > 0;
 }
