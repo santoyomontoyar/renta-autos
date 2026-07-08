@@ -12,6 +12,12 @@
     <script src="../js/session.js"></script>
     <script src="../js/navbar.js"></script>
 
+    <div class="mb-4">
+        <a href="insertar.html" class="btn btn-primary">
+            Insertar nuevo seguro
+        </a>
+    </div>
+
     <div class="overflow-x-auto">
         <table class="table table-zebra w-full" id="tablaSeguros">
             <thead>
@@ -19,12 +25,14 @@
                     <th>ID</th>
                     <th>Tipo de Seguro</th>
                     <th>Precio x Dia</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody id="tbody"></tbody>
         </table>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../js/seguro.js"></script>
 </body>
 </html>
