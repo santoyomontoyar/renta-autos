@@ -16,6 +16,33 @@ try {
 
         case "getAll":
             $data = getAllsucursal();
+            echo json_encode([
+                "status" => "success",
+                "data" => $data
+            ]);
+            break;
+
+        case "insert":
+          $data = insertar_sucursal($_post);
+          echo json_encode ([ "status" => $data ? "success" : "error",
+                "data" => $data,
+                "message" => $data ? null : "No se pudo guardar la sucursal"
+            ]);
+         break;    
+
+        case "delete_sucursal":
+            $ok = deleteSucursal($_post['id_sucursal']);
+            if ($ok === "en_uso") {
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "No se puede eliminar esta sucursal porque está en uso"
+                ]);
+            } else {
+                echo json_encode([
+                    "status" => $ok ? "success" : "error",
+                    "message" => $ok ? "Sucursal eliminada" : "No se pudo eliminar esta sucursal"
+                ]);
+            }
             break;
 
         default:
@@ -25,11 +52,6 @@ try {
             ]);
             exit;
     }
-
-    echo json_encode([
-        "status" => "success",
-        "data" => $data
-    ]);
 
 } catch (Exception $e) {
     echo json_encode([

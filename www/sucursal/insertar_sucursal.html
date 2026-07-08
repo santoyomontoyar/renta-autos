@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <title>Insertar Sucursal</title>
+</head>
+<body class="p-8">
+
+    <script src="../js/session.js"></script>
+    <script src="../js/navbar.js"></script>
+
+    <form id="formnuevosucursal" class="max-w-md space-y-3">
+        <h2 class="text-2xl font-bold mb-4">registrar sucursal</h2>
+        <div>
+            <label for="Nombre" class="label">Nombre</label>
+            <input type="text" id="Nombre" name="nombre" required class="input input-bordered w-full">
+        </div>
+        <div>
+            <label for="ciudad" class="label">Ciudad</label>
+            <input type="text" id="ciudad" name="ciudad" required class="input input-bordered w-full">
+        </div>
+        <div class="flex gap-2 pt-2">
+            <button id="btnGuardar" type="button" class="btn btn-primary">guardar</button>
+            <button id="btnCancelar" type="button" class="btn">cancelar</button>
+        </div>
+    </form>
+
+    <script src="../js/sucursal.js"></script>
+</body>
+</html>
