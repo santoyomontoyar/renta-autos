@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const inputId = document.getElementById("id_tipo_seguro");
     const inputNombre = document.getElementById("nombre");
+    const inputDescripcion = document.getElementById("descripcion");
     const form = document.getElementById("formTipoSeguro");
     const btnGuardar = document.getElementById("btnGuardar");
 
@@ -21,27 +22,24 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(res => res.json())
         .then(json => {
             if (json.status === "success") {
-                inputNombre.value = json.data.nombre;
+                inputNombre.value = json.data.nombre ?? "";
+                inputDescripcion.value = json.data.descripcion ?? "";
                 btnGuardar.textContent = "Guardar cambios";
             }
         });
-    } else {
-        btnGuardar.textContent = "Guardar";
     }
 
     form.addEventListener("submit", (e) => {
         e.preventDefault();
 
-        const nombre = inputNombre.value.trim();
-        const action = id ? "update" : "create";
-
         fetch("../php/tipo_seguro.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                action,
+                action: id ? "update" : "create",
                 id_tipo_seguro: id,
-                nombre
+                nombre: inputNombre.value.trim(),
+                descripcion: inputDescripcion.value.trim()
             })
         })
         .then(res => res.json())
@@ -49,9 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (json.status === "success") {
                 window.location.href = "index.html";
             } else {
-                console.error(json.message);
+                alert(json.message || "No se pudo guardar");
             }
-        })
-        .catch(err => console.error(err));
+        });
     });
 });
