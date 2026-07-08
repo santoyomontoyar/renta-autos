@@ -4,6 +4,7 @@ $password_db = "app_password";
 $host_db = "mysql";
 $name_db = "app_db";
 
+
 try {
   $db = new PDO("mysql:host=$host_db;dbname=$name_db", $user_db, $password_db);
   $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

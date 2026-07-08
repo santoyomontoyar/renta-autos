@@ -328,6 +328,29 @@ function insertRenta($datos) {
     
 }
 
+function insertar_rol($datos){
+    global $db;
+    $name = $datos["name"];
+
+    $consulta = "INSERT INTO rol (nombre) VALUES ('$name')";
+    $db->exec($consulta);
+
+    return true;
+}
+
+function deleteRol($id_rol) {
+    global $db;
+    try {
+        $stmt = $db->prepare("DELETE FROM rol WHERE id_rol = :id_rol");
+        $stmt->execute(['id_rol' => $id_rol]);
+        return $stmt->rowCount() > 0;
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23000) {
+            return "en_uso";
+        }
+        return false;
+    }
+}
 function insertCliente($id_usuario) {
     global $db;
     try {
