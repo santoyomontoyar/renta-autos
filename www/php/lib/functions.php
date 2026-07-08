@@ -278,16 +278,7 @@ function insertRenta($datos) {
             :fecha_inicio, :fecha_fin, :monto_deposito, :estado_deposito, :precio_cobrado, :estado
         )
     ");
-    
-}
-
-function insertCliente($id_usuario) {
-    global $db;
-    try {
-        $stmt = $db->prepare("INSERT INTO cliente (id_usuario) VALUES (:id_usuario)");
-        return $stmt->execute([':id_usuario' => $id_usuario]);
-    } catch (PDOException $e) {
-    return $stmt->execute([
+        return $stmt->execute([
         ':id_cliente'          => $datos['id_cliente'],
         ':id_vehiculo'         => $datos['id_vehiculo'],
         ':id_seguro'           => $datos['id_seguro'],
@@ -300,6 +291,15 @@ function insertCliente($id_usuario) {
         ':precio_cobrado'      => $datos['precio_cobrado'],
         ':estado'              => $datos['estado']
     ]);
+    
+}
+
+function insertCliente($id_usuario) {
+    global $db;
+    try {
+        $stmt = $db->prepare("INSERT INTO cliente (id_usuario) VALUES (:id_usuario)");
+        return $stmt->execute([':id_usuario' => $id_usuario]);
+    } catch (PDOException $e) {
 }
 }
 
@@ -480,4 +480,11 @@ function deleteUsuario($id) {
         error_log('deleteUsuario error: ' . $e->getMessage());
         return false;
     }
+}
+
+function deleteCliente($id_cliente) {
+    global $db;
+    $stmt = $db->prepare("DELETE FROM cliente WHERE id_cliente = :id_cliente");
+    $stmt->execute(['id_cliente' => $id_cliente]);
+    return $stmt->rowCount() > 0; // Returns true if a row was deleted
 }
