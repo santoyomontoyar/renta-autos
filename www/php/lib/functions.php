@@ -366,7 +366,19 @@ function insertRenta($datos) {
             :fecha_inicio, :fecha_fin, :monto_deposito, :estado_deposito, :precio_cobrado, :estado
         )
     ");
-    
+    return $stmt->execute([
+        ':id_cliente'          => $datos['id_cliente'],
+        ':id_vehiculo'         => $datos['id_vehiculo'],
+        ':id_seguro'           => $datos['id_seguro'],
+        ':id_sucursal_origen'  => $datos['id_sucursal_origen'],
+        ':id_sucursal_destino' => $datos['id_sucursal_destino'],
+        ':fecha_inicio'        => $datos['fecha_inicio'],
+        ':fecha_fin'           => $datos['fecha_fin'],
+        ':monto_deposito'      => $datos['monto_deposito'],
+        ':estado_deposito'     => $datos['estado_deposito'],
+        ':precio_cobrado'      => $datos['precio_cobrado'],
+        ':estado'              => $datos['estado']
+    ]);
 }
 
 function insertar_rol($datos){
@@ -398,20 +410,9 @@ function insertCliente($id_usuario) {
         $stmt = $db->prepare("INSERT INTO cliente (id_usuario) VALUES (:id_usuario)");
         return $stmt->execute([':id_usuario' => $id_usuario]);
     } catch (PDOException $e) {
-    return $stmt->execute([
-        ':id_cliente'          => $datos['id_cliente'],
-        ':id_vehiculo'         => $datos['id_vehiculo'],
-        ':id_seguro'           => $datos['id_seguro'],
-        ':id_sucursal_origen'  => $datos['id_sucursal_origen'],
-        ':id_sucursal_destino' => $datos['id_sucursal_destino'],
-        ':fecha_inicio'        => $datos['fecha_inicio'],
-        ':fecha_fin'           => $datos['fecha_fin'],
-        ':monto_deposito'      => $datos['monto_deposito'],
-        ':estado_deposito'     => $datos['estado_deposito'],
-        ':precio_cobrado'      => $datos['precio_cobrado'],
-        ':estado'              => $datos['estado']
-    ]);
-}
+        error_log('insertCliente error: ' . $e->getMessage());
+        return false;
+    }
 }
 
 function getOneModelo($id_modelo){
