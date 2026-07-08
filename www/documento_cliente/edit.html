@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuario</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-100 to-indigo-200 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-xl">
+
+        <h2 class="text-3xl font-bold text-center text-gray-700 mb-8">Registro de Documentos</h2>
+
+        <form id="form_document_client" class="space-y-5">
+
+            <div>
+                <label for="id_cliente" class="block text-gray-700 font-semibold mb-2">Cliente</label>
+                <select id="id_cliente" name="id_cliente" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Selecciona un cliente</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="TipoDocumento" class="block text-gray-700 font-semibold mb-2">Tipo de Documento</label>
+                <input type="text" id="TipoDocumento" name="TipoDocumento" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label for="NumeroDocumento" class="block text-gray-700 font-semibold mb-2">Número de Documento</label>
+                <input type="text" id="NumeroDocumento" name="NumeroDocumento" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label for="FechaVencimiento" class="block text-gray-700 font-semibold mb-2">Vencimiento</label>
+                <input type="date" id="FechaVencimiento" name="FechaVencimiento" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label for="UrlArchivo" class="block text-gray-700 font-semibold mb-2">URL Archivo</label>
+                <input type="text" id="UrlArchivo" name="UrlArchivo" required
+               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="flex gap-4 pt-4">
+
+                <button id="btnGuardar" type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300">Guardar Usuario</button>
+                <button type="button" onclick="window.location.href='index.html'" class="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition duration-300 cursor-pointer">Cancelar</button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+    <script src="../js/documento_cliente.js"></script>
+
+</body>
+</html>

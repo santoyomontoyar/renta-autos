@@ -43,6 +43,19 @@ function getAllDocumentos() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function getDocumentoById($id_documento) {
+    global $db;
+    $stmt = $db->prepare("SELECT d.id_documento, d.id_cliente, d.tipo_documento, d.numero_documento, d.url_archivo, d.fecha_vencimiento,
+                                 u.nombre, u.apellido 
+                          FROM documento_cliente d
+                          INNER JOIN cliente c ON d.id_cliente = c.id_cliente
+                          INNER JOIN usuario u ON c.id_usuario = u.id_usuario
+                          WHERE d.id_documento = :id_documento");
+    $stmt->bindParam(':id_documento', $id_documento);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 function insertDocumentos($datos){
     
     $id_cliente = $datos["id_cliente"];
@@ -54,6 +67,26 @@ function insertDocumentos($datos){
     $consultaDocu = "INSERT INTO documento_cliente (id_cliente, tipo_documento, numero_documento, url_archivo, fecha_vencimiento) VALUES ('$id_cliente', '$tipo_documento', '$numero_documento', '$url_archivo', '$fecha_vencimiento')";
     global $db;
     $stmt = $db->prepare($consultaDocu);
+    $stmt->execute();
+}
+
+function updateDocumentos($datos){
+    $id_documento = $datos["id_documento"];
+    $tipo_documento = $datos["tipo_documento"];
+    $numero_documento = $datos["numero_documento"];
+    $url_archivo = $datos["url_archivo"];
+    $fecha_vencimiento = $datos["fecha_vencimiento"];
+
+    $consultaDocu = "UPDATE documento_cliente SET tipo_documento = '$tipo_documento', numero_documento = '$numero_documento', url_archivo = '$url_archivo', fecha_vencimiento = '$fecha_vencimiento' WHERE id_documento = '$id_documento'";
+    global $db;
+    $stmt = $db->prepare($consultaDocu);
+    $stmt->execute();
+}
+
+function deleteDocumentos($id_documento){
+    global $db;
+    $stmt = $db->prepare("DELETE FROM documento_cliente WHERE id_documento = :id_documento");
+    $stmt->bindParam(':id_documento', $id_documento);
     $stmt->execute();
 }
 
