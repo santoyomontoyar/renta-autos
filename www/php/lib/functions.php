@@ -111,7 +111,7 @@ function getAllTipoSeguro() {
     global $db;
 
     $stmt = $db->prepare("
-        SELECT id_tipo_seguro, nombre, descripcion
+        SELECT id_tipo_seguro, nombre
         FROM tipo_seguro
     ");
     $stmt->execute();
@@ -125,8 +125,7 @@ function getTipoSeguro($id) {
     $stmt = $db->prepare("
         SELECT
             id_tipo_seguro,
-            nombre,
-            descripcion
+            nombre
         FROM tipo_seguro
         WHERE id_tipo_seguro = :id
     ");
@@ -189,6 +188,36 @@ function getAllSeguros() {
 
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+function insertSeguro($datos) {
+    global $db;
+    $id_tipo_seguro = $datos["id_tipo_seguro"] ?? 0;
+    $costo_diario = $datos["costo_diario"] ?? 0;
+
+    try {
+        $stmt = $db->prepare("INSERT INTO seguro (id_tipo_seguro, costo_diario) VALUES (:id_tipo_seguro, :costo_diario)");
+        $stmt->bindParam(':id_tipo_seguro', $id_tipo_seguro, PDO::PARAM_INT);
+        $stmt->bindParam(':costo_diario', $costo_diario);
+
+        if ($stmt->execute()) {
+            return $db->lastInsertId();
+        }
+    } catch (PDOException $e) {
+        error_log('insertSeguro error: ' . $e->getMessage());
+    }
+    return false;
+}
+
+function deleteSeguro($id) {
+    global $db;
+    try {
+        $stmt = $db->prepare("DELETE FROM seguro WHERE id_seguro = :id");
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        return $stmt->execute();
+    } catch (PDOException $e) {
+        error_log('deleteSeguro error: ' . $e->getMessage());
+        return false;
+    }
 }
 
 function getAllModelos() {
@@ -257,15 +286,33 @@ function getAllFallas() {
 
 
 function insertUsuarios($datos){
-    $name = $datos["name"];
-    $lastname = $datos["lastname"];
-    $email = $datos["email"];
-    $phone = $datos["phone"];
-    $status = $datos["status"];
-    $rol = $datos["role"];
-    
-    $consulta = "INSERT INTO usuario (nombre, apellido, telefono, correo, password, estado, id_rol) VALUES ('$name','$lastname', '$phone', '$email','','$status', $rol )";
-} 
+    global $db;
+    $name = $datos["name"] ?? '';
+    $lastname = $datos["lastname"] ?? '';
+    $email = $datos["email"] ?? '';
+    $phone = $datos["phone"] ?? '';
+    $status = $datos["status"] ?? '';
+    $rol = $datos["role"] ?? 0;
+
+    try {
+        $stmt = $db->prepare("INSERT INTO usuario (nombre, apellido, telefono, correo, password, estado, id_rol)
+                               VALUES (:nombre, :apellido, :telefono, :correo, '', :estado, :id_rol)");
+        $stmt->bindParam(':nombre', $name);
+        $stmt->bindParam(':apellido', $lastname);
+        $stmt->bindParam(':telefono', $phone);
+        $stmt->bindParam(':correo', $email);
+        $stmt->bindParam(':estado', $status);
+        $stmt->bindParam(':id_rol', $rol, PDO::PARAM_INT);
+
+        if ($stmt->execute()) {
+            return $db->lastInsertId();
+        }
+    } catch (PDOException $e) {
+        error_log('insertUsuarios error: ' . $e->getMessage());
+    }
+
+    return false;
+}
 
 function insertRenta($datos) {
     global $db;
@@ -417,32 +464,6 @@ function deleteModelo($id_modelo){
     $stmt->bindParam(":id",$id_modelo, PDO::PARAM_INT);
          return $stmt->execute();
     }
-    global $db;
-    $name = $datos["name"] ?? '';
-    $lastname = $datos["lastname"] ?? '';
-    $email = $datos["email"] ?? '';
-    $phone = $datos["phone"] ?? '';
-    $status = $datos["status"] ?? '';
-    $rol = $datos["role"] ?? 0;
-
-    try {
-        $stmt = $db->prepare("INSERT INTO usuario (nombre, apellido, telefono, correo, password, estado, id_rol)
-                               VALUES (:nombre, :apellido, :telefono, :correo, '', :estado, :id_rol)");
-        $stmt->bindParam(':nombre', $name);
-        $stmt->bindParam(':apellido', $lastname);
-        $stmt->bindParam(':telefono', $phone);
-        $stmt->bindParam(':correo', $email);
-        $stmt->bindParam(':estado', $status);
-        $stmt->bindParam(':id_rol', $rol, PDO::PARAM_INT);
-
-        if ($stmt->execute()) {
-            return $db->lastInsertId();
-        }
-    } catch (PDOException $e) {
-        error_log('insertUsuarios error: ' . $e->getMessage());
-    }
-    return false;
-
 
 function getUsuarioById($id) {
     global $db;

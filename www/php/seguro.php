@@ -10,6 +10,13 @@ switch ($action) {
     case 'getAll':
         $data = getAllSeguros();
         break;
+        case 'insert':
+        $data = insertSeguro($_post);
+        break;
+
+    case 'delete':
+        $data = deleteSeguro($_post['id'] ?? 0);
+        break;
     default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         exit;
