@@ -7,35 +7,83 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <title>Tipos de Seguro</title>
 </head>
+
 <body class="p-8">
 
-   
+    <div id="navbar-container"></div>
     <script src="../js/navbar.js"></script>
-    <div class="flex items-center justify-center p-4">
-                <a href="./editar.html"
-                   class="w-8 h-8 bg-green-500 hover:bg-green-600
-                          text-white font-bold text-lg
-                          flex justify-center
-                          rounded transition"
-                   title="Agregar">
-        +
-    </a></div>
 
-    <div class="overflow-x-auto">
-        <table class="table table-zebra w-full" id="tablaTipoSeguro">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Descripción</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-        </table>
+    <div class="max-w-[1500px] mx-auto">
+        <div class="flex items-center justify-start p-4" id="btnAgregarContainer">
+            <button
+                type="button"
+                id="btnAgregar"
+                class="w-10 h-10 bg-green-500 hover:bg-green-600 text-white font-bold text-xl flex items-center justify-center rounded transition shadow"
+                title="Agregar">
+                +
+            </button>
+        </div>
+
+        <section id="tableSection" class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full" id="tablaTipoSeguro">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="formSection" class="hidden mt-6">
+            <h1 id="formTitle" class="text-2xl font-bold text-gray-800 mb-6 text-center">
+                Tipo de Seguro
+            </h1>
+
+            <form id="formTipoSeguro" class="space-y-4 max-w-2xl mx-auto">
+                <input type="hidden" id="id_tipo_seguro">
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Nombre
+                    </label>
+                    <input
+                        type="text"
+                        id="nombre"
+                        class="input input-bordered w-full"
+                        placeholder="Escribe el nombre">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                        Descripción
+                    </label>
+                    <textarea
+                        id="descripcion"
+                        class="textarea textarea-bordered w-full"
+                        rows="4"
+                        placeholder="Escribe la descripción"></textarea>
+                </div>
+
+                <div class="flex gap-3 justify-end pt-2">
+                    <button type="button" id="btnCancelarAgregar" class="btn btn-outline">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btnGuardar" class="btn btn-primary">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </section>
     </div>
 
-   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="../js/tipo_seguro.js?=v2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module" src="../js/tipo_seguro.js?v=2"></script>
+
 </body>
 </html>
