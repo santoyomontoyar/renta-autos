@@ -863,3 +863,69 @@ function deleteCliente($id_cliente) {
     $stmt->execute(['id_cliente' => $id_cliente]);
     return $stmt->rowCount() > 0;
 }
+
+function getAllImagenesFalla() {
+    global $db;
+    $stmt = $db->prepare("
+        SELECT i.id_imagen, i.id_falla, i.url_archivo, i.fecha_subida,
+               f.descripcion AS falla_descripcion
+        FROM imagen_falla i
+        INNER JOIN reporte_falla f ON i.id_falla = f.id_falla
+    ");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getImagenFallaById($id_imagen) {
+    global $db;
+    $stmt = $db->prepare("SELECT id_imagen, id_falla, url_archivo, fecha_subida
+                           FROM imagen_falla WHERE id_imagen = :id");
+    $stmt->bindParam(':id', $id_imagen, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function insertImagenFalla($datos) {
+    global $db;
+    try {
+        $stmt = $db->prepare("INSERT INTO imagen_falla (id_falla, url_archivo) VALUES (:id_falla, :url_archivo)");
+        $stmt->bindParam(':id_falla', $datos['id_falla'], PDO::PARAM_INT);
+        $stmt->bindParam(':url_archivo', $datos['url_archivo']);
+
+        if ($stmt->execute()) {
+            return $db->lastInsertId();
+        }
+        return false;
+    } catch (PDOException $e) {
+        error_log('insertImagenFalla error: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function updateImagenFalla($datos) {
+    global $db;
+    try {
+        $stmt = $db->prepare("UPDATE imagen_falla SET id_falla = :id_falla, url_archivo = :url_archivo
+                               WHERE id_imagen = :id_imagen");
+        $stmt->bindParam(':id_falla', $datos['id_falla'], PDO::PARAM_INT);
+        $stmt->bindParam(':url_archivo', $datos['url_archivo']);
+        $stmt->bindParam(':id_imagen', $datos['id_imagen'], PDO::PARAM_INT);
+
+        return $stmt->execute();
+    } catch (PDOException $e) {
+        error_log('updateImagenFalla error: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function deleteImagenFalla($id_imagen) {
+    global $db;
+    try {
+        $stmt = $db->prepare("DELETE FROM imagen_falla WHERE id_imagen = :id");
+        $stmt->bindParam(':id', $id_imagen, PDO::PARAM_INT);
+        return $stmt->execute();
+    } catch (PDOException $e) {
+        error_log('deleteImagenFalla error: ' . $e->getMessage());
+        return false;
+    }
+}
