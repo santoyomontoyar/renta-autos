@@ -8,14 +8,26 @@
     <title>Reporte de Fallas</title>
 </head>
 <body class="p-8">
+     <style>
+       .hidden { display: none !important; }
+   </style>
 
     <script src="../js/session.js"></script>
     <script src="../js/navbar.js"></script>
 
-    <div class="overflow-x-auto">
-        <table class="table table-zebra w-full">
+    <div class="max-w-7xl mx-auto mt-8 px-4"></div>
+
+     <div class="flex justify-between items-center mb-6">
+            <h1 class="text-4xl font-bold">Fallas</h1>
+            <div>
+                 <button id="listBtn" class="btn btn-lg btn-primary text-lg hidden">Volver</button>
+                 <button id="addForm" class="btn btn-lg btn-primary text-lg max">Agregar</button>
+            </div>
+        </div>
+
+    <table class="table table-zebra w-full text-lg" id="table">
             <thead>
-                <tr>
+                <tr class="text-lg">
                     <th>ID</th>
                     <th># Renta</th>
                     <th>Mecanico</th>
@@ -25,8 +37,9 @@
             </thead>
             <tbody id="tbody"></tbody>
         </table>
-    </div>
+        <div id="formArea" class="hidden"></div>
 
-    <script src="../js/reporte_falla.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module" src="../js/reporte_falla.js"></script>
 </body>
 </html>
