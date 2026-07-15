@@ -1,21 +1,36 @@
-const tbody = document.querySelector("#tbody");
-const form = document.querySelector("#formSeguro");
+import {
+    getAllSeguros,
+    getSeguro,
+    createSeguro,
+    updateSeguro,
+    deleteSeguro
+} from "./api_seguro.js?v=2";
 
-if (tbody) cargarSeguros();
-if (form) iniciarFormulario();
+import { getAllTipoSeguro } from "./api_tipo_seguro.js?v=2";
 
-function cargarSeguros() {
-fetch("../php/seguro.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "getAll" })
-})
-.then(res => res.json())
-.then(json => {
-    if (json.status === "success") {
-        const tbody = document.querySelector("#tbody");
+document.addEventListener("DOMContentLoaded", () => {
+    const btnAgregar = document.getElementById("btnAgregar");
+    const btnCancelarAgregar = document.getElementById("btnCancelarAgregar");
+    const form = document.getElementById("formSeguro");
+    const tbody = document.getElementById("tbody");
 
-        tbody.innerHTML = json.data.map(d => `
+    btnAgregar.addEventListener("click", abrirFormularioAgregar);
+    btnCancelarAgregar.addEventListener("click", cerrarFormulario);
+    form.addEventListener("submit", guardarSeguro);
+    tbody.addEventListener("click", manejarAccionesTabla);
+
+    cargarSeguros();
+    mostrarVistaTabla();
+});
+
+async function cargarSeguros() {
+    const tbody = document.getElementById("tbody");
+
+    try {
+        const json = await getAllSeguros();
+
+    if (json.status === "success" && Array.isArray(json.data) && json.data.length > 0) {
+            tbody.innerHTML = json.data.map(d => `
             <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                 
                 <td class="px-6 py-4 text-sm font-medium text-gray-900">
@@ -30,116 +45,215 @@ fetch("../php/seguro.php", {
                     $${d.costo_diario}
                 </td>
 
-                <td class="px-6 py-4 text-sm">
-                <a href="editar.html?id=${d.id_seguro}" class="btn btn-sm btn-warning">Editar</a>
-                <a href="#" data-id="${d.id_seguro}" class="btn btn-sm btn-error">Eliminar</a>
+                <td class="px-5 py-4">
+                        <div class="flex justify-center gap-2">
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-warning"
+                                data-action="edit"
+                                data-id="${d.id_seguro}">
+                                Editar
+                            </button>
+
+                             <button
+                                type="button"
+                                class="btn btn-sm btn-error"
+                                data-action="delete"
+                                data-id="${d.id_seguro}">
+                                Eliminar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+       `).join("");
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center py-6 text-gray-500">
+                        No hay seguros registrados.
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (err) {
+        console.error("Error al cargar seguros:", err);
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center py-6 text-red-500">
+                    Ocurrió un error al cargar los datos.
                 </td>
-
             </tr>
-        `).join('');
-    }
-})
-.catch(err => console.error("Error:", err));
-}
-
-function iniciarFormulario() {
-    fetch("../php/tipo_seguro.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "getAll" })
-    })
-    .then(res => res.json())
-    .then(json => {
-        if (json.status === "success") {
-            llenarSelect("id_tipo_seguro", json.data, "id_tipo_seguro", "nombre");
-        }
-    });
-
-    const btnGuardar = document.querySelector("#btnGuardar");
-    const btnCancelar = document.querySelector("#btnCancelar");
-
-    btnGuardar.addEventListener("click", e => {
-        e.preventDefault();
-        const payload = {
-            action: "insert",
-            id_tipo_seguro: form.elements["id_tipo_seguro"].value,
-            costo_diario: form.elements["costo_diario"].value
-        };
-
-        fetch("../php/seguro.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(json => {
-            if (json.status === "success") {
-                window.location.href = "index.html";
-            } else {
-                alert("No se pudo guardar el seguro: " + (json.message || ""));
-            }
-        })
-        .catch(err => {
-            console.error("Error insert:", err);
-            alert("Error al guardar. Revisa la consola.");
-        });
-    });
-
-    if (btnCancelar) {
-        btnCancelar.addEventListener("click", () => {
-            window.location.href = "index.html";
-        });
+        `;
     }
 }
-
-function llenarSelect(name, items, valueField, textField) {
-    const select = form.elements[name];
+async function llenarSelectTipoSeguro(idSeleccionado = "") {
+    const select = document.getElementById("id_tipo_seguro");
     select.innerHTML = '<option value="">-- Selecciona --</option>';
-    items.forEach(item => {
-        select.innerHTML += `<option value="${item[valueField]}">${item[textField]}</option>`;
-    });
+
+    const json = await getAllTipoSeguro();
+
+    if (json.status === "success" && Array.isArray(json.data)) {
+        json.data.forEach(item => {
+            const selected = String(item.id_tipo_seguro) === String(idSeleccionado) ? "selected" : "";
+            select.innerHTML += `<option value="${item.id_tipo_seguro}" ${selected}>${item.nombre}</option>`;
+        });
+    }
 }
 
-if (tbody) {
-    tbody.addEventListener('click', function (evento) {
-        if (evento.target && evento.target.matches('.btn-error')) {
-            const id = evento.target.getAttribute('data-id');
+function manejarAccionesTabla(e) {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
 
-            Swal.fire({
-                title: "¿Estás seguro de eliminar este registro?",
-                text: "No vas a poder revertir esto!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Confirmar",
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const datos = { action: "delete", id: id };
-                    fetch("../php/seguro.php", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(datos)
-                    })
-                    .then(res => res.json())
-                    .then(json => {
-                        let response = {
-                            title: "Borrado",
-                            text: "Tu registro ha sido eliminado.",
-                            icon: "success"
-                        };
-                        if (json.status === "error") {
-                            response = {
-                                title: "Error",
-                                text: "No se pudo eliminar el registro.",
-                                icon: "error"
-                            };
-                        }
-                        Swal.fire(response);
-                        cargarSeguros();
-                    });
-                }
-            });
-        }
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+
+    if (action === "edit") {
+        abrirFormularioEditar(id);
+    }
+
+    if (action === "delete") {
+        eliminarSeguro(id);
+    }
+}
+
+async function abrirFormularioAgregar() {
+    limpiarFormulario();
+    document.getElementById("formTitle").textContent = "Agregar Seguro";
+    document.getElementById("btnGuardar").textContent = "Guardar";
+    mostrarFormulario();
+    await llenarSelectTipoSeguro();
+}
+
+async function abrirFormularioEditar(id) {
+    limpiarFormulario();
+
+    document.getElementById("formTitle").textContent = "Editar Seguro";
+    document.getElementById("btnGuardar").textContent = "Actualizar";
+
+    mostrarFormulario();
+
+    const json = await getSeguro(id);
+
+    if (json.status === "success" && json.data) {
+        document.getElementById("id_seguro").value = json.data.id_seguro ?? "";
+        document.getElementById("costo_diario").value = json.data.costo_diario ?? "";
+        await llenarSelectTipoSeguro(json.data.id_tipo_seguro);
+    } else {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: json.message || "No se pudo cargar el registro"
+        });
+
+        cerrarFormulario();
+    }
+}
+async function guardarSeguro(e) {
+    e.preventDefault();
+
+    const id_seguro = document.getElementById("id_seguro").value.trim();
+    const id_tipo_seguro = document.getElementById("id_tipo_seguro").value;
+    const costo_diario = document.getElementById("costo_diario").value.trim();
+
+    if (!id_tipo_seguro || !costo_diario) {
+        Swal.fire({
+            icon: "warning",
+            title: "Falta información",
+            text: "Selecciona un tipo de seguro y escribe el costo diario."
+        });
+        return;
+    }
+
+    let json;
+
+    if (id_seguro) {
+        json = await updateSeguro(id_seguro, id_tipo_seguro, costo_diario);
+    } else {
+        json = await createSeguro(id_tipo_seguro, costo_diario);
+    }
+
+    if (json.status === "success") {
+        await Swal.fire({
+            icon: "success",
+            title: "Guardado",
+            text: id_seguro
+                ? "El registro se actualizó correctamente."
+                : "El registro se guardó correctamente."
+        });
+
+        cerrarFormulario();
+        cargarSeguros();
+    } else {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: json.message || "No se pudo guardar el registro"
+        });
+    }
+}
+
+async function eliminarSeguro(id) {
+    const result = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "No podrás revertir esta acción.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar"
     });
+
+    if (!result.isConfirmed) return;
+
+    const json = await deleteSeguro(id);
+
+    if (json.status === "success") {
+        await Swal.fire({
+            title: "¡Eliminado!",
+            text: "El registro fue eliminado correctamente.",
+            icon: "success"
+        });
+
+        cargarSeguros();
+    } else {
+        Swal.fire({
+            title: "Error",
+            text: json.message || "No se pudo eliminar.",
+            icon: "error"
+        });
+    }
+}
+
+function mostrarFormulario() {
+    const tableSection = document.getElementById("tableSection");
+    const btnAgregarContainer = document.getElementById("btnAgregarContainer");
+    const formSection = document.getElementById("formSection");
+
+    if (tableSection) tableSection.classList.add("hidden");
+    if (btnAgregarContainer) btnAgregarContainer.classList.add("hidden");
+    if (formSection) formSection.classList.remove("hidden");
+}
+
+function mostrarVistaTabla() {
+    const tableSection = document.getElementById("tableSection");
+    const btnAgregarContainer = document.getElementById("btnAgregarContainer");
+    const formSection = document.getElementById("formSection");
+
+    if (tableSection) tableSection.classList.remove("hidden");
+    if (btnAgregarContainer) btnAgregarContainer.classList.remove("hidden");
+    if (formSection) formSection.classList.add("hidden");
+}
+
+function cerrarFormulario() {
+    limpiarFormulario();
+    mostrarVistaTabla();
+}
+
+function limpiarFormulario() {
+    document.getElementById("formSeguro").reset();
+    document.getElementById("id_seguro").value = "";
+    document.getElementById("formTitle").textContent = "Seguro";
+    document.getElementById("btnGuardar").textContent = "Guardar";
 }

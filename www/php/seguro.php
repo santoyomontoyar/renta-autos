@@ -10,19 +10,24 @@ switch ($action) {
     case 'getAll':
         $data = getAllSeguros();
         break;
+        case 'getOne':
+        $data = getSeguroById($_post['id'] ?? 0);
+        break;
         case 'insert':
         $data = insertSeguro($_post);
         break;
-
-    case 'delete':
+        case 'update':
+        $data = updateSeguro($_post);
+        break;
+        case 'delete':
         $data = deleteSeguro($_post['id'] ?? 0);
         break;
-    default:
+        default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         exit;
 }
 
-if ($data !== "") {
+if ($data !== "" && $data !== false && $data !== null) {
     echo json_encode(['status' => 'success', 'data' => $data]);
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Failed to fetch data']);
