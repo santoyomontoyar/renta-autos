@@ -155,15 +155,8 @@ function getAllTipoSeguro() {
 function getTipoSeguro($id) {
     global $db;
 
-    $stmt = $db->prepare("
-        SELECT
-            id_tipo_seguro,
-            nombre
-        FROM tipo_seguro
-        WHERE id_tipo_seguro = :id
-    ");
-
-    $stmt->bindParam(':id', $id);
+    $stmt = $db->prepare("SELECT id_tipo_seguro, nombre, descripcion FROM tipo_seguro WHERE id_tipo_seguro = :id");
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
 
     return $stmt->fetch(PDO::FETCH_ASSOC);
