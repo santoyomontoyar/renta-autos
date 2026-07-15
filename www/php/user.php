@@ -26,6 +26,9 @@ switch ($action) {
     case 'delete':
     $data = deleteUsuario($_post['id'] ?? 0);
     break;
+    case 'getAllRoles':
+    $data = getAllRoles();
+    break;
   default:
     echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
     exit;

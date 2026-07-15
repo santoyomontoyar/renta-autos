@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Registrar Usuario</title>
 </head>
 <body class="p-8">
@@ -40,11 +41,7 @@
         </div>
         <div>
             <label for="Rol" class="label">Rol</label>
-            <select id="Rol" name="Rol" required class="select select-bordered w-full">
-                <option value="1">Admin</option>
-                <option value="2">Cliente</option>
-                <option value="3">Mecanico</option>
-            </select>
+            <select id="Rol" name="Rol" required class="select select-bordered w-full"></select>
         </div>
         <div class="flex gap-2 pt-2">
             <button id="btnGuardar" type="button" class="btn btn-primary">guardar usuario</button>
@@ -52,6 +49,6 @@
         </div>
     </form>
 
-    <script src="../js/user.js"></script>
+    <script type="module" src="../js/user.js"></script>
 </body>
 </html>

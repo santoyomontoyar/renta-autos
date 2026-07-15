@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Editar Usuario</title>
 </head>
 <body class="p-8">
@@ -13,45 +14,41 @@
     <script src="../js/navbar.js"></script>
 
     <form id="formeditarusuario" class="max-w-md space-y-3">
-        <h2 class="text-2xl font-bold mb-4">editar usuario</h2>
-        <div>
-            <label for="Nombre" class="label">Nombre</label>
-            <input type="text" id="Nombre" name="Nombre" disabled class="input input-bordered w-full">
-        </div>
-        <div>
-            <label for="Apellido" class="label">Apellido</label>
-            <input type="text" id="Apellido" name="apellido" disabled class="input input-bordered w-full">
-        </div>
-        <div>
-            <label for="Correo" class="label">Correo</label>
-            <input type="email" id="Correo" name="correo" disabled class="input input-bordered w-full">
-        </div>
-        <div>
-            <label for="telefono" class="label">telefono</label>
-            <input type="text" id="telefono" name="telefono" disabled class="input input-bordered w-full">
-        </div>
-        <div>
-            <label for="Estado" class="label">Estado</label>
-            <select id="Estado" name="Estado" disabled class="select select-bordered w-full">
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
-                <option value="Suspendido">Suspendido</option>
-            </select>
-        </div>
-        <div>
-            <label for="Rol" class="label">Rol</label>
-            <select id="Rol" name="Rol" disabled class="select select-bordered w-full">
-                <option value="1">Admin</option>
-                <option value="2">Cliente</option>
-                <option value="3">Mecanico</option>
-            </select>
-        </div>
-        <div class="flex gap-2 pt-2">
-            <button id="btnActualizar" type="button" disabled class="btn btn-primary btn-disabled">actualizar usuario</button>
-            <button id="btnCancelar" type="button" class="btn">cancelar</button>
-        </div>
-    </form>
+    <h2 class="text-2xl font-bold mb-4">editar usuario</h2>
+    <div>
+        <label for="Nombre" class="label">Nombre</label>
+        <input type="text" id="Nombre" name="Nombre" required class="input input-bordered w-full">
+    </div>
+    <div>
+        <label for="Apellido" class="label">Apellido</label>
+        <input type="text" id="Apellido" name="apellido" required class="input input-bordered w-full">
+    </div>
+    <div>
+        <label for="Correo" class="label">Correo</label>
+        <input type="email" id="Correo" name="correo" required class="input input-bordered w-full">
+    </div>
+    <div>
+        <label for="telefono" class="label">telefono</label>
+        <input type="text" id="telefono" name="telefono" required class="input input-bordered w-full">
+    </div>
+    <div>
+        <label for="Estado" class="label">Estado</label>
+        <select id="Estado" name="Estado" required class="select select-bordered w-full">
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+            <option value="Suspendido">Suspendido</option>
+        </select>
+    </div>
+    <div>
+        <label for="Rol" class="label">Rol</label>
+        <select id="Rol" name="Rol" required class="select select-bordered w-full"></select>
+    </div>
+    <div class="flex gap-2 pt-2">
+        <button id="btnActualizar" type="button" class="btn btn-primary">actualizar usuario</button>
+        <button id="btnCancelar" type="button" class="btn">cancelar</button>
+    </div>
+</form>
 
-    <script src="../js/user.js"></script>
+    <script type="module" src="../js/user.js"></script>
 </body>
 </html>
