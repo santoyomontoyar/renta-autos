@@ -12,6 +12,24 @@ switch ($action) {
     case 'getAll':
         $data = getAllRoles();
         break;
+    case 'insert':
+        $data = insertar_rol($_post);
+        break;    
+
+    case 'delete_rol':
+        $ok = deleteRol($_post['id_rol']);
+        if ($ok === "en_uso") {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'No se puede eliminar este rol porque está en uso'
+            ]);
+        } else {
+            echo json_encode([
+                'status' => $ok? 'success' : 'error',
+                'message' => $ok ? 'Rol eliminado' : 'No se pudo eliminar este rol'
+            ]);
+        }
+        exit;
 
     default:
         echo json_encode([
@@ -21,7 +39,7 @@ switch ($action) {
         exit;
 }
 
-if ($data !== "") {
+if ($data) {
     echo json_encode([
         'status' => 'success',
         'data' => $data
@@ -29,6 +47,6 @@ if ($data !== "") {
 } else {
     echo json_encode([
         'status' => 'error',
-        'message' => 'Failed to fetch data'
+        'message' => 'Failed to insert data'
     ]);
 }

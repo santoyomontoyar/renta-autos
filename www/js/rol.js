@@ -1,43 +1,96 @@
-document.addEventListener("DOMContentLoaded", () => {
+const btnGuardar = document.querySelector("#btnGuardar");
+const tbody = document.querySelector("#tbody");
 
-    fetch("../php/rol.php", {
+if (tbody) {    
+fetch("../php/rol.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "getAll" })
     })
     .then(res => res.json())
     .then(json => {
-        console.log("Respuesta:", json);
-
+        if (json.status === "success") {
         const tbody = document.querySelector("#tbody");
-
-        if (!tbody) {
-            console.error("No existe #tbody en el HTML");
-            return;
-        }
-
-        if (json.status === "success" && json.data.length > 0) {
-            tbody.innerHTML = json.data.map(d => `
-                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">#${d.id_rol}</td>
-
-                    <td class="px-6 py-4 text-sm text-gray-700 font-semibold">
-                        ${d.nombre}
-                    </td>
-                </tr>
-            `).join('');
-        } else {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="2" class="text-center py-4 text-gray-500">
-                        No hay datos disponibles
-                    </td>
-                </tr>
+        json.data.forEach(d => {
+            tbody.innerHTML += `
+            <tr>
+            <td>${d.id_rol}</td>
+            <td>${d.nombre}</td>
+            <td>
+            <a href="editar.html"> editar </a>
+            <a href="#" data-id="${d.id_rol}" class="btn-error"> eliminar </a>
+            </td>
+            </tr>
             `;
-        }
-    })
-    .catch(err => {
-        console.error("Error en fetch:", err);
-    });
+        });
+       }
+      });
+     }    
 
-});
+        if (tbody) {
+            tbody.addEventListener("click", function (evento) {
+                if (evento.target && evento.target.matches(".btn-error")) {
+                    const id = evento.target.getAttribute("data-id");
+                    
+            Swal.fire({
+                title: "¿Estás seguro de eliminar este registro?",
+                text: "No vas a poder revertir esto!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Confirmar",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const datos = { action: "delete_rol", id_rol: id };
+
+        fetch("../php/rol.php", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(datos)
+        })
+        .then(res => res.json())
+        .then(json => {
+           let response = {
+              title: "Borrado",
+              text: "El registro ha sido borrado",
+              icon: "success",
+        };
+        if (json.status === "error") {
+            response = {
+                title: "Error",
+                text: json.message,
+                icon: "error",
+            };
+        }   
+                Swal.fire(response).then(() => {
+                    location.reload();
+                  });
+               });
+             }
+          });
+        }
+    });
+}
+
+if (!tbody) {
+            const Nombre = document.querySelector("#Nombre");
+
+        btnGuardar.addEventListener("click", e => {
+            e.preventDefault();
+            const payload = {
+                action: "insert",
+                name: Nombre.value
+            }
+
+        fetch("../php/rol.php", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(json => {
+           console.log(json);
+        })
+    })
+ }
