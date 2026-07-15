@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Documentos de Clientes</title>
 </head>
 <body class="p-8">
@@ -12,6 +13,8 @@
     <script src="../js/session.js"></script>
     <script src="../js/navbar.js"></script>
 
+<div id="tableList">
+    <button id="addBtn" class="btn btn-primary mb-4 mt-4">+ Agregar Documento</button>
     <div class="overflow-x-auto">
         <table class="table table-zebra w-full" id="tablaDocumentos">
             <thead>
@@ -25,12 +28,14 @@
                 </tr>
             </thead>
             <tbody id="tbody"></tbody>
-
-            <a href="insertar.html" class="flex items-center justify-center pt-4"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 "><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-
         </table>
     </div>
-    <script src="../js/documento_cliente.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</div>
+
+
+<div id="formContainer" class="hidden max-w-md bg-white p-6 shadow-xl rounded-2xl border border-gray-100"></div>
+
+   
+    <script type="module" src="../js/documento_cliente.js"></script>
 </body>
 </html>
