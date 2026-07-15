@@ -28,6 +28,7 @@ nav.innerHTML = `
                     <li><a href="/tipo_seguro">Tipos de Seguro</a></li>
                     <li><a href="/rol">Roles</a></li>
                     <li><a href="/reporte_falla">Fallas</a></li>
+                    <li><a href="/imagen_falla">Imágenes de Fallas</a></li>
                     <li><a href="/modelo_vehiculo">Modelos</a></li>
                     <li><a href="/sucursal">Sucursales</a></li>
                 </ul>
