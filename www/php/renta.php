@@ -33,6 +33,31 @@ switch ($action) {
     }
     exit;
 
+    case 'getOne':
+    $data = getRentaById($_post['id_renta']);
+    echo json_encode($data
+        ? ['status' => 'success', 'data' => $data]
+        : ['status' => 'error', 'message' => 'Renta no encontrada']);
+    exit;
+
+  case 'update':
+    $result = updateRenta($_post['datos']);
+    echo json_encode($result
+        ? ['status' => 'success', 'message' => 'Renta actualizada']
+        : ['status' => 'error', 'message' => 'No se pudo actualizar']);
+    exit;
+
+  case 'delete':
+    $result = deleteRenta($_post['id_renta']);
+    echo json_encode($result
+        ? ['status' => 'success', 'message' => 'Renta eliminada']
+        : ['status' => 'error', 'message' => 'No se pudo eliminar']);
+    exit;
+
+    case 'getReservas':
+    echo json_encode(['status' => 'success', 'data' => getReservasVehiculo()]);
+    exit;
+
   default:
     echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
     exit;
