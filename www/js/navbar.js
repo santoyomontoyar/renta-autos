@@ -17,6 +17,7 @@ nav.innerHTML = `
       <li><a href="/reporte_falla">Fallas</a></li>
       <li><a href="/modelo_vehiculo">Modelos</a></li>
       <li><a href="/sucursal">Sucursales</a></li>
+      <li><a href="/imagen_falla">Imagen del detalle</a></li>
     </ul>
   </div>
 `;
