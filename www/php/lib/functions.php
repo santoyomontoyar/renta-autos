@@ -565,6 +565,38 @@ function deleteUsuario($id) {
         return false;
     }
 }
+
+function insertar_sucursal($datos) {
+    global $db;
+    $nombre = $datos["nombre"] ?? '';
+    $ciudad = $datos["ciudad"] ?? '';
+
+    try {
+        $stmt = $db->prepare("INSERT INTO sucursal (nombre, ciudad) VALUES (:nombre, :ciudad)");
+        $stmt->bindParam(':nombre', $nombre);
+        $stmt->bindParam(':ciudad', $ciudad);
+
+        if ($stmt->execute()) {
+            return $db->lastInsertId();
+        }
+    } catch (PDOException $e) {
+        error_log('insertSucursal error: ' . $e->getMessage());
+    }
+    return false;
+}
+
+function deleteSucursal($id_sucursal) {
+    global $db;
+    try {
+        $stmt = $db->prepare("DELETE FROM sucursal WHERE id_sucursal = :id_sucursal");
+        $stmt->execute(['id_sucursal' => $id_sucursal]);
+        return $stmt->rowCount() > 0;
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23000) {
+            return "en_uso";
+        }
+        return false;
+    }
 function deleteCliente($id_cliente) {
     global $db;
     $stmt = $db->prepare("DELETE FROM cliente WHERE id_cliente = :id_cliente");
