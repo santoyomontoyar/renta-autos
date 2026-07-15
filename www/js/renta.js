@@ -1,179 +1,160 @@
+import renderRenta from './renta/renders.js';
+import { poblarSelects, calcularPrecioTotal, resolverCliente, actualizarPlacaCascada, resolverVehiculoPorPlaca, hayConflictoReserva, clienteTieneRentaActiva } from './renta/catalogos.js';
+
+async function post(action, extra = {}) {
+    const res = await fetch("../php/renta.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, ...extra })
+    });
+    return res.json();
+}
+
 const tbody = document.querySelector("#tbody");
 if (tbody) {
-  fetch("../php/renta.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "getAll" })
-  })
-    .then(res => res.json())
-    .then(json => {
-      if (json.status === "success") {
-        json.data.forEach(r => {
-          tbody.innerHTML += `
-            <tr>
-              <td>${r.id_renta}</td>
-              <td>${r.cliente}</td>
-              <td>${r.vehiculo}</td>
-              <td>${r.seguro}</td>
-              <td>${r.sucursal_origen}</td>
-              <td>${r.sucursal_destino}</td>
-              <td>${r.fecha_inicio}</td>
-              <td>${r.fecha_fin}</td>
-              <td>${r.monto_deposito}</td>
-              <td>${r.estado_deposito}</td>
-              <td>$${r.precio_cobrado}</td>
-              <td>${r.estado}</td>
-              <td>
-                <div class="flex gap-2">
-                  <a href="editar_renta.html?id=${r.id_renta}" class="btn btn-xs btn-warning text-white font-semibold">
-                     Editar
-                  </a>
-                  <button onclick="eliminarRenta(${r.id_renta})" class="btn btn-xs btn-error text-white font-semibold">
-                     Eliminar
-                  </button>
-                </div>
-              </td>
-            </tr>
-          `;
+    cargarRentas();
+
+    tbody.addEventListener("click", async (e) => {
+        if (!e.target.classList.contains("deleteBtn")) return;
+        const id = e.target.dataset.id;
+
+        const confirmacion = await Swal.fire({
+            title: "¿Eliminar renta?",
+            text: "Esta acción no se puede deshacer",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar"
         });
-      }
+        if (!confirmacion.isConfirmed) return;
+
+        const json = await post("delete", { id_renta: id });
+        if (json.status === "success") {
+            Swal.fire("Eliminada", json.message, "success");
+            cargarRentas();
+        } else {
+            Swal.fire("Error", json.message, "error");
+        }
     });
 }
 
+async function cargarRentas() {
+    const json = await post("getAll");
+    if (json.status === "success") renderRenta(json.data);
+}
 
 const btnGuardar = document.getElementById("btnGuardar");
 if (btnGuardar) {
+    const params = new URLSearchParams(window.location.search);
+    const id_renta = params.get("id"); // null = insertar, con valor = editar
 
-  let listaVehiculos = [];
-  let listaSeguros = [];
+    let listaVehiculos = [];
+    let listaSeguros = [];
+    let listaClientes = [];
+    let listaReservas = [];
+    let rentaOriginal = null;
 
-  
-  fetch("../php/renta.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "getFormNeeds" })
-  })
-  .then(res => res.json())
-  .then(json => {
-    if (json.status === "success") {
-      const catalogs = json.data;
-      listaVehiculos = catalogs.vehiculos;
-      listaSeguros = catalogs.seguros;
+    (async function init() {
+        const catalogsJson = await post("getFormNeeds");
+        if (catalogsJson.status !== "success") return;
 
-      
-      const selectCliente = document.getElementById("id_cliente");
-      catalogs.clientes.forEach(c => {
-        selectCliente.innerHTML += `<option value="${c.id_cliente}">${c.nombre} ${c.apellido}</option>`;
-      });
+        const catalogs = catalogsJson.data;
+        listaVehiculos = catalogs.vehiculos;
+        listaSeguros = catalogs.seguros;
+        poblarSelects(catalogs);
+        listaClientes = catalogs.clientes;
 
-      
-      const selectVehiculo = document.getElementById("id_vehiculo");
-      catalogs.vehiculos.forEach(v => {
-        selectVehiculo.innerHTML += `<option value="${v.id_vehiculo}">${v.marca} ${v.nombre_modelo} ($${v.costo_diario}/día)</option>`;
-      });
+        const reservasJson = await post("getReservas");
+if (reservasJson.status === "success") listaReservas = reservasJson.data;
 
-      const selectSeguro = document.getElementById("id_seguro");
-      catalogs.seguros.forEach(s => {
-        selectSeguro.innerHTML += `<option value="${s.id_seguro}">${s.tipo_seguro} ($${s.costo_diario}/día)</option>`;
-      });
+const ahora = new Date();
+ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
+document.getElementById("fecha_inicio").min = ahora.toISOString().slice(0, 16);
 
-      const selectOrigen = document.getElementById("id_sucursal_origen");
-      const selectDestino = document.getElementById("id_sucursal_destino");
-      catalogs.sucursales.forEach(s => {
-        const optionHtml = `<option value="${s.id_sucursal}">${s.nombre} (${s.ciudad})</option>`;
-        selectOrigen.innerHTML += optionHtml;
-        selectDestino.innerHTML += optionHtml;
-      });
-    }
-  })
-  .catch(err => console.error("Error cargando catálogos:", err));
+document.getElementById("fecha_inicio").addEventListener("change", (e) => {
+    document.getElementById("fecha_fin").min = e.target.value;
+});
 
-  function calcularPrecioTotal() {
-    const idVehiculo = document.getElementById("id_vehiculo").value;
-    const idSeguro = document.getElementById("id_seguro").value;
-    const fechaInicioVal = document.getElementById("fecha_inicio").value;
-    const fechaFinVal = document.getElementById("fecha_fin").value;
-    const inputPrecioCobrado = document.getElementById("precio_cobrado");
 
-    if (!idVehiculo || !idSeguro || !fechaInicioVal || !fechaFinVal) {
-      inputPrecioCobrado.value = "";
-      return;
-    }
+        if (id_renta) {
+            const rentaJson = await post("getOne", { id_renta });
+            if (rentaJson.status !== "success") {
+                Swal.fire("Error", "No se pudo cargar la renta", "error").then(() => window.location.href = "index.html");
+                return;
+            }
+            rentaOriginal = rentaJson.data;
+            const clienteEncontrado = listaClientes.find(c => c.id_cliente == rentaOriginal.id_cliente);
+if (clienteEncontrado) {
+    document.getElementById("cliente_texto").value = `${clienteEncontrado.nombre} ${clienteEncontrado.apellido}`;
+    document.getElementById("id_cliente").value = rentaOriginal.id_cliente;
+}
 
-    const fechaInicio = new Date(fechaInicioVal);
-    const fechaFin = new Date(fechaFinVal);
-    
-    const diferenciaTiempo = fechaFin - fechaInicio;
-    let dias = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
-
-    if (dias <= 0) {
-      dias = 1; 
-    }
-
-    const vehiculoSeleccionado = listaVehiculos.find(v => v.id_vehiculo == idVehiculo);
-    const seguroSeleccionado = listaSeguros.find(s => s.id_seguro == idSeguro);
-
-    if (vehiculoSeleccionado && seguroSeleccionado) {
-      const costoCarroDiario = parseFloat(vehiculoSeleccionado.costo_diario);
-      const costoSeguroDiario = parseFloat(seguroSeleccionado.costo_diario);
-
-      const totalCalculado = (costoCarroDiario + costoSeguroDiario) * dias;
-      inputPrecioCobrado.value = totalCalculado.toFixed(2);
-    }
-  }
-
-  
-  document.getElementById("id_vehiculo").addEventListener("change", calcularPrecioTotal);
-  document.getElementById("id_seguro").addEventListener("change", calcularPrecioTotal);
-  document.getElementById("fecha_inicio").addEventListener("change", calcularPrecioTotal);
-  document.getElementById("fecha_fin").addEventListener("change", calcularPrecioTotal);
-
- 
-  btnGuardar.addEventListener("click", function() {
-    let id_cliente = document.getElementById("id_cliente").value;
-    let id_vehiculo = document.getElementById("id_vehiculo").value;
-    let id_seguro = document.getElementById("id_seguro").value;
-    let id_sucursal_origen = document.getElementById("id_sucursal_origen").value;
-    let id_sucursal_destino = document.getElementById("id_sucursal_destino").value;
-    let fecha_inicio = document.getElementById("fecha_inicio").value;
-    let fecha_fin = document.getElementById("fecha_fin").value;
-    let monto_deposito = document.getElementById("monto_deposito").value;
-    let precio_cobrado = document.getElementById("precio_cobrado").value;
-
-    if(!id_cliente || !id_vehiculo || !id_seguro || !id_sucursal_origen || !id_sucursal_destino || !fecha_inicio || !fecha_fin || !precio_cobrado) {
-        alert("Por favor, rellena todos los parámetros requeridos antes de guardar.");
-        return;
-    }
-
-    fetch("../php/renta.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "insert",
-        datos: {
-          id_cliente: id_cliente,
-          id_vehiculo: id_vehiculo,
-          id_seguro: id_seguro,
-          id_sucursal_origen: id_sucursal_origen,
-          id_sucursal_destino: id_sucursal_destino,
-          fecha_inicio: fecha_inicio,
-          fecha_fin: fecha_fin,
-          monto_deposito: monto_deposito,
-          precio_cobrado: precio_cobrado,
-          estado_deposito: "Retenido",
-          estado: "Activa"
+const vehiculoEncontrado = listaVehiculos.find(v => v.id_vehiculo == rentaOriginal.id_vehiculo);
+if (vehiculoEncontrado) {
+    document.getElementById("vehiculo_texto").value = `${vehiculoEncontrado.marca} ${vehiculoEncontrado.nombre_modelo}`;
+    actualizarPlacaCascada(listaVehiculos);
+    document.getElementById("placa_texto").value = vehiculoEncontrado.placa;
+    document.getElementById("id_vehiculo").value = rentaOriginal.id_vehiculo;
+}
+            document.getElementById("id_seguro").value = rentaOriginal.id_seguro;
+            document.getElementById("id_sucursal_origen").value = rentaOriginal.id_sucursal_origen;
+            document.getElementById("id_sucursal_destino").value = rentaOriginal.id_sucursal_destino;
+            document.getElementById("fecha_inicio").value = rentaOriginal.fecha_inicio.replace(' ', 'T').slice(0, 16);
+            document.getElementById("fecha_fin").value = rentaOriginal.fecha_fin.replace(' ', 'T').slice(0, 16);
+            document.getElementById("monto_deposito").value = rentaOriginal.monto_deposito;
+            document.getElementById("precio_cobrado").value = rentaOriginal.precio_cobrado;
         }
-      })
-    })
-    .then(res => res.json())
-    .then(json => {
-      if (json.status === "success") {
-        alert(json.message);
-        window.location.href = "index.html";
-      } else {
-        alert("Error: " + json.message);
-      }
-    })
-    .catch(err => console.error("Error al insertar:", err));
-  });
+
+        ["id_seguro", "fecha_inicio", "fecha_fin"].forEach(id => {
+    document.getElementById(id).addEventListener("change", () => calcularPrecioTotal(listaVehiculos, listaSeguros));
+});
+})();
+
+    document.getElementById("cliente_texto").addEventListener("input", () => resolverCliente(listaClientes));
+document.getElementById("vehiculo_texto").addEventListener("input", () => actualizarPlacaCascada(listaVehiculos));
+document.getElementById("placa_texto").addEventListener("input", () => {
+    resolverVehiculoPorPlaca(listaVehiculos);
+    calcularPrecioTotal(listaVehiculos, listaSeguros);
+});
+
+    btnGuardar.addEventListener("click", async () => {
+        const datos = {
+            id_cliente: document.getElementById("id_cliente").value,
+            id_vehiculo: document.getElementById("id_vehiculo").value,
+            id_seguro: document.getElementById("id_seguro").value,
+            id_sucursal_origen: document.getElementById("id_sucursal_origen").value,
+            id_sucursal_destino: document.getElementById("id_sucursal_destino").value,
+            fecha_inicio: document.getElementById("fecha_inicio").value,
+            fecha_fin: document.getElementById("fecha_fin").value,
+            monto_deposito: document.getElementById("monto_deposito").value,
+            precio_cobrado: document.getElementById("precio_cobrado").value,
+            estado_deposito: rentaOriginal ? rentaOriginal.estado_deposito : "Retenido",
+            estado: rentaOriginal ? rentaOriginal.estado : "Activa"
+        };
+
+        if (Object.values(datos).some(v => v === "")) {
+            Swal.fire("Faltan datos", "Rellena todos los parámetros requeridos antes de guardar", "warning");
+            return;
+        }
+
+        if (hayConflictoReserva(listaReservas, datos.id_vehiculo, datos.fecha_inicio, datos.fecha_fin, id_renta)) {
+    Swal.fire("Conflicto de fechas", "Ese vehículo ya está reservado en ese rango de fechas", "error");
+    return;
+}
+
+        if (clienteTieneRentaActiva(listaReservas, datos.id_cliente, id_renta)) {
+    Swal.fire("Cliente con renta activa", "Este cliente ya tiene una renta activa, no puede tener más de una", "error");
+    return;
+}
+
+        if (id_renta) datos.id_renta = id_renta;
+        const json = id_renta ? await post("update", { datos }) : await post("insert", { datos });
+
+        if (json.status === "success") {
+            await Swal.fire("Listo", json.message, "success");
+            window.location.href = "index.html";
+        } else {
+            Swal.fire("Error", json.message, "error");
+        }
+    });
 }

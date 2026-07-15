@@ -538,6 +538,75 @@ function insertRenta($datos) {
         ':estado'              => $datos['estado']
     ]);
 }
+function getRentaById($id_renta) {
+    global $db;
+    $stmt = $db->prepare("
+        SELECT id_renta, id_cliente, id_vehiculo, id_seguro, id_sucursal_origen, id_sucursal_destino,
+               fecha_inicio, fecha_fin, monto_deposito, estado_deposito, precio_cobrado, estado
+        FROM renta WHERE id_renta = :id
+    ");
+    $stmt->bindParam(':id', $id_renta, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function updateRenta($datos) {
+    global $db;
+    try {
+        $stmt = $db->prepare("
+            UPDATE renta SET
+                id_cliente = :id_cliente,
+                id_vehiculo = :id_vehiculo,
+                id_seguro = :id_seguro,
+                id_sucursal_origen = :id_sucursal_origen,
+                id_sucursal_destino = :id_sucursal_destino,
+                fecha_inicio = :fecha_inicio,
+                fecha_fin = :fecha_fin,
+                monto_deposito = :monto_deposito,
+                estado_deposito = :estado_deposito,
+                precio_cobrado = :precio_cobrado,
+                estado = :estado
+            WHERE id_renta = :id_renta
+        ");
+        return $stmt->execute([
+            ':id_cliente'          => $datos['id_cliente'],
+            ':id_vehiculo'         => $datos['id_vehiculo'],
+            ':id_seguro'           => $datos['id_seguro'],
+            ':id_sucursal_origen'  => $datos['id_sucursal_origen'],
+            ':id_sucursal_destino' => $datos['id_sucursal_destino'],
+            ':fecha_inicio'        => $datos['fecha_inicio'],
+            ':fecha_fin'           => $datos['fecha_fin'],
+            ':monto_deposito'      => $datos['monto_deposito'],
+            ':estado_deposito'     => $datos['estado_deposito'],
+            ':precio_cobrado'      => $datos['precio_cobrado'],
+            ':estado'              => $datos['estado'],
+            ':id_renta'            => $datos['id_renta']
+        ]);
+    } catch (PDOException $e) {
+        error_log('updateRenta error: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function deleteRenta($id_renta) {
+    global $db;
+    try {
+        $stmt = $db->prepare("DELETE FROM renta WHERE id_renta = :id");
+        $stmt->bindParam(':id', $id_renta, PDO::PARAM_INT);
+        return $stmt->execute();
+    } catch (PDOException $e) {
+        error_log('deleteRenta error: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function getReservasVehiculo() {
+    global $db;
+    $stmt = $db->prepare("SELECT id_renta, id_cliente, id_vehiculo, fecha_inicio, fecha_fin, estado FROM renta");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 
 function insertar_rol($datos){
     global $db;
