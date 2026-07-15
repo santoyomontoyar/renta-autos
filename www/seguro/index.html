@@ -10,29 +10,100 @@
 <body class="p-8">
 
     <script src="../js/session.js"></script>
+    <div id="navbar-container"></div>
     <script src="../js/navbar.js"></script>
 
-    <div class="mb-4">
-        <a href="insertar.html" class="btn btn-primary">
-            Insertar nuevo seguro
-        </a>
+    <div class="max-w-[1500px] mx-auto">
+
+    <div class="flex items-center justify-start p-4" id="btnAgregarContainer">
+        <button
+            type="button"
+            id="btnAgregar"
+            class="w-10 h-10 bg-green-500 hover:bg-green-600 text-white font-bold text-xl flex items-center justify-center rounded transition shadow"
+            title="Agregar">
+            +
+        </button>
     </div>
 
-    <div class="overflow-x-auto">
-        <table class="table table-zebra w-full" id="tablaSeguros">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Tipo de Seguro</th>
-                    <th>Precio x Dia</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-        </table>
-    </div>
+    <section id="tableSection" class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full" id="tablaSeguros">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo de Seguro</th>
+                        <th>Precio x Día</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tbody"></tbody>
+
+            </table>
+        </div>
+
+    </section>
+
+    <section id="formSection" class="hidden mt-6">
+
+        <h1 id="formTitle" class="text-2xl font-bold text-gray-800 mb-6 text-center">
+            Seguro
+        </h1>
+
+        <form id="formSeguro" class="space-y-4 max-w-2xl mx-auto">
+
+            <input type="hidden" id="id_seguro">
+
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-700">
+                    Tipo de Seguro
+                </label>
+
+                <select id="id_tipo_seguro" class="select select-bordered w-full">
+                    <option value="">-- Selecciona --</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-700">
+                    Precio x Día
+                </label>
+
+                <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    id="costo_diario"
+                    class="input input-bordered w-full"
+                    placeholder="Escribe el costo diario">
+            </div>
+
+            <div class="flex gap-3 justify-end pt-2">
+
+                <button
+                    type="button"
+                    id="btnCancelarAgregar"
+                    class="btn btn-outline">
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    id="btnGuardar"
+                    class="btn btn-primary">
+                    Guardar
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../js/seguro.js"></script>
+    <script type="module" src="../js/seguro.js?v=2"></script>
 </body>
 </html>

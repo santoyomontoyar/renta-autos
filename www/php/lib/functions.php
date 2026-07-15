@@ -254,6 +254,44 @@ function deleteSeguro($id) {
     }
 }
 
+function getSeguroById($id) {
+    global $db;
+    $stmt = $db->prepare("
+        SELECT
+            s.id_seguro,
+            s.id_tipo_seguro,
+            ts.nombre AS tipo_seguro,
+            s.costo_diario
+        FROM seguro s
+        INNER JOIN tipo_seguro ts
+            ON s.id_tipo_seguro = ts.id_tipo_seguro
+        WHERE s.id_seguro = :id
+    ");
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function updateSeguro($datos) {
+    global $db;
+    $id = $datos["id"] ?? 0;
+    $id_tipo_seguro = $datos["id_tipo_seguro"] ?? 0;
+    $costo_diario = $datos["costo_diario"] ?? 0;
+
+    try {
+        $stmt = $db->prepare("UPDATE seguro
+                               SET id_tipo_seguro = :id_tipo_seguro, costo_diario = :costo_diario
+                               WHERE id_seguro = :id");
+        $stmt->bindParam(':id_tipo_seguro', $id_tipo_seguro, PDO::PARAM_INT);
+        $stmt->bindParam(':costo_diario', $costo_diario);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        return $stmt->execute();
+    } catch (PDOException $e) {
+        error_log('updateSeguro error: ' . $e->getMessage());
+        return false;
+    }
+}
+
 function getAllModelos() {
     global $db;
 
@@ -488,15 +526,15 @@ function updateModelo($datos){
 function deleteModelo($id_modelo){
     global $db;
 
-    $stmt=$db->prepare("
-    UPDATE modelo_vehiculo
-    SET estado = 0
-    WHERE id_modelo = :id
-    ");
-
-    $stmt->bindParam(":id",$id_modelo, PDO::PARAM_INT);
-         return $stmt->execute();
+    try {
+        $stmt = $db->prepare("DELETE FROM modelo_vehiculo WHERE id_modelo = :id");
+        $stmt->bindParam(":id", $id_modelo, PDO::PARAM_INT);
+        return $stmt->execute();
+    } catch (PDOException $e) {
+        error_log('deleteModelo error: ' . $e->getMessage());
+        return false;
     }
+}
 
 function getUsuarioById($id) {
     global $db;
