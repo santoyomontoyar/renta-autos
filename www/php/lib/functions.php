@@ -590,6 +590,8 @@ function deleteSucursal($id_sucursal) {
         }
         return false;
     }
+}
+
 function deleteCliente($id_cliente) {
     global $db;
     $stmt = $db->prepare("DELETE FROM cliente WHERE id_cliente = :id_cliente");
