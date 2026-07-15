@@ -16,6 +16,14 @@ switch ($action) {
         $data = insertar_rol($_post);
         break;    
 
+    case 'update':
+        $ok = actualizarRol($_post['id_rol'], $_post['name']);
+        echo json_encode([
+            'status'  => $ok ? 'success' : 'error',
+            'message' => $ok ? 'Rol actualizado' : 'No se pudo actualizar el rol'
+        ]);
+        exit;    
+
     case 'delete_rol':
         $ok = deleteRol($_post['id_rol']);
         if ($ok === "en_uso") {

@@ -1,36 +1,46 @@
-const btnGuardar = document.querySelector("#btnGuardar");
-const tbody = document.querySelector("#tbody");
+import getRoles, { insertarRol, actualizarRol, eliminarRol } from './rol_api.js'
+import renderRoles from './rol_renders.js'
+import views, { clearForm } from './rol_views.js'
+import form from './rol_form.js'
 
-if (tbody) {    
-fetch("../php/rol.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "getAll" })
-    })
-    .then(res => res.json())
-    .then(json => {
-        if (json.status === "success") {
-        const tbody = document.querySelector("#tbody");
-        json.data.forEach(d => {
-            tbody.innerHTML += `
-            <tr>
-            <td>${d.id_rol}</td>
-            <td>${d.nombre}</td>
-            <td>
-            <a href="editar.html"> editar </a>
-            <a href="#" data-id="${d.id_rol}" class="btn-error"> eliminar </a>
-            </td>
-            </tr>
-            `;
-        });
-       }
-      });
-     }    
+const table = document.querySelector(`#table`);
+const formArea = document.querySelector('#formArea');
+const addForm = document.querySelector("#addForm");
+const listBtn = document.querySelector("#listBtn");
 
-        if (tbody) {
-            tbody.addEventListener("click", function (evento) {
-                if (evento.target && evento.target.matches(".btn-error")) {
-                    const id = evento.target.getAttribute("data-id");
+formArea.innerHTML = form();
+
+const name = document.querySelector('#name');
+const btnGuardar = document.querySelector('#btnGuardar');
+
+let roles = await getRoles();
+renderRoles(roles);
+
+let idEditar = null;
+
+listBtn.addEventListener('click', function () {
+    views();
+});
+
+addForm.addEventListener('click', function () {
+    views();
+    clearForm();
+    idEditar = null;
+});
+
+table.addEventListener('click', function (e) {
+    if (e.target.classList.contains('editBtn')) {
+        const id = e.target.dataset.id;
+        const rol = roles.find(rol => rol.id_rol == id);
+ 
+        idEditar = id;
+        name.value = rol.nombre;
+        views();
+    } 
+
+     if (e.target.classList.contains('deleteBtn')) {
+        const id = e.target.dataset.id;
+    
                     
             Swal.fire({
                 title: "¿Estás seguro de eliminar este registro?",
@@ -40,57 +50,45 @@ fetch("../php/rol.php", {
                 confirmButtonColor: "#3085d6",
                 cancelButtonColor: "#d33",
                 confirmButtonText: "Confirmar",
-            }).then((result) => {
+            }).then(async(result) => {
                 if (result.isConfirmed) {
-                    const datos = { action: "delete_rol", id_rol: id };
+                    const json = await eliminarRol(id);
 
-        fetch("../php/rol.php", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(datos)
-        })
-        .then(res => res.json())
-        .then(json => {
-           let response = {
-              title: "Borrado",
-              text: "El registro ha sido borrado",
-              icon: "success",
-        };
-        if (json.status === "error") {
-            response = {
-                title: "Error",
-                text: json.message,
-                icon: "error",
-            };
-        }   
-                Swal.fire(response).then(() => {
-                    location.reload();
-                  });
-               });
-             }
-          });
-        }
-    });
-}
+                const response = json.status === 'success'
+                ? { title: 'Borrado', text: 'El registro ha sido borrado', icon: 'success'}   
+                : { title: 'Error', text: json.message, icon: 'error' }; 
 
-if (!tbody) {
-            const Nombre = document.querySelector("#Nombre");
-
-        btnGuardar.addEventListener("click", e => {
-            e.preventDefault();
-            const payload = {
-                action: "insert",
-                name: Nombre.value
+          Swal.fire(response).then(async () => {
+                    roles = await getRoles();
+                    renderRoles(roles);
+                });
             }
+        });
+    }
+});       
 
-        fetch("../php/rol.php", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(json => {
-           console.log(json);
-        })
-    })
- }
+        btnGuardar.addEventListener("click", async function (e) {
+            e.preventDefault();
+
+            const nombre = name.value.trim();
+            if (!nombre) return;
+
+            const json = idEditar
+            ? await actualizarRol(idEditar, nombre)
+            : await insertarRol(nombre);
+
+            if (json.status === 'success') {
+                await Swal.fire ({
+                    title: 'Guardado',
+                    text: 'El registrado se guardo correctamente',
+                    icon: 'success'
+                });
+                idEditar = null
+                clearForm();
+                views();
+                roles = await getRoles();
+                renderRoles(roles);
+            } else {
+                Swal.fire({ title: 'Error', text: json.message || 'No se pudo guardar', icon: 'error' });
+            }
+        });

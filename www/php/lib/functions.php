@@ -384,6 +384,21 @@ function insertar_rol($datos){
     return true;
 }
 
+function actualizarRol($id_rol, $nombre) {
+    global $db;
+
+    $stmt = $db->prepare("
+        UPDATE rol
+        SET nombre = :nombre
+        WHERE id_rol = :id
+    ");
+
+    $stmt->bindParam(":nombre", $nombre);
+    $stmt->bindParam(":id", $id_rol);
+
+    return $stmt->execute();
+}
+
 function deleteRol($id_rol) {
     global $db;
     try {
