@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Vehículos</title>
 </head>
 <body class="p-8">
@@ -12,21 +13,32 @@
     <script src="../js/session.js"></script>
     <script src="../js/navbar.js"></script>
 
-    <div class="overflow-x-auto">
-        <table class="table table-zebra w-full" id="tablaVehiculos">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Vehículo / Modelo</th>
-                    <th>Placas</th>
-                    <th>Categoría</th>
-                    <th>Precio Renta</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-        </table>
+     <div id="tableList">
+        <button id="addBtn" class="btn btn-primary mb-4 mt-4">+ Agregar Vehículo</button>
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full" id="tablaVehiculos">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Vehículo / Modelo</th>
+                        <th>Placas</th>
+                        <th>Categoría</th>
+                        <th>Transmisión</th>
+                        <th>Precio Renta</th>
+                        <th>Estado</th>
+                        <th>Ubicación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
     </div>
-    <script src="../js/vehiculo.js"></script>
+
+    <div id="formContainer" class="hidden max-w-md">
+        <button id="listBtn" class="btn btn-ghost mb-4 hidden">← Volver a la lista</button>
+    </div>
+
+    <script type="module" src="../js/vehiculo.js"></script>
 </body>
 </html>
