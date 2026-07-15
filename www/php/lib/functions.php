@@ -102,12 +102,86 @@ function deleteDocumentos($id_documento){
 
 function getAllVehiculos() {
     global $db;
-    $stmt = $db->prepare("SELECT v.id_vehiculo, v.placa, v.estado,
-                                 m.nombre_modelo, m.marca, m.year, m.categoria, m.costo_diario
+    $stmt = $db->prepare("SELECT v.id_vehiculo, v.placa, v.estado, v.transmision,
+                                 m.nombre_modelo, m.marca, m.year, m.categoria, m.costo_diario,
+                                 s.nombre AS sucursal
                           FROM vehiculo v
-                          INNER JOIN modelo_vehiculo m ON v.id_modelo = m.id_modelo");
+                          INNER JOIN modelo_vehiculo m ON v.id_modelo = m.id_modelo
+                          INNER JOIN sucursal s ON v.id_sucursal_actual = s.id_sucursal");
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function insertVehiculo($datos) {
+    global $db;
+    try {
+        $stmt = $db->prepare("INSERT INTO vehiculo (id_modelo, id_sucursal_actual, estado, placa, transmision)
+                               VALUES (:id_modelo, :id_sucursal_actual, :estado, :placa, :transmision)");
+        $stmt->bindParam(':id_modelo', $datos['id_modelo'], PDO::PARAM_INT);
+        $stmt->bindParam(':id_sucursal_actual', $datos['id_sucursal_actual'], PDO::PARAM_INT);
+        $stmt->bindParam(':estado', $datos['estado']);
+        $stmt->bindParam(':placa', $datos['placa']);
+        $stmt->bindParam(':transmision', $datos['transmision']);
+
+        if ($stmt->execute()) {
+            return $db->lastInsertId();
+        }
+        return false;
+    } catch (PDOException $e) {
+        error_log('insertVehiculo error: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function getVehiculoById($id) {
+    global $db;
+    $stmt = $db->prepare("SELECT v.id_vehiculo, v.id_modelo, v.id_sucursal_actual, v.estado, v.placa, v.transmision,
+                                 m.marca, m.nombre_modelo, m.year
+                           FROM vehiculo v
+                           INNER JOIN modelo_vehiculo m ON v.id_modelo = m.id_modelo
+                           WHERE v.id_vehiculo = :id");
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function updateVehiculo($datos) {
+    global $db;
+    try {
+        $stmt = $db->prepare("UPDATE vehiculo SET
+                                 id_modelo = :id_modelo,
+                                 id_sucursal_actual = :id_sucursal_actual,
+                                 estado = :estado,
+                                 placa = :placa,
+                                 transmision = :transmision
+                               WHERE id_vehiculo = :id");
+        $stmt->bindParam(':id_modelo', $datos['id_modelo'], PDO::PARAM_INT);
+        $stmt->bindParam(':id_sucursal_actual', $datos['id_sucursal_actual'], PDO::PARAM_INT);
+        $stmt->bindParam(':estado', $datos['estado']);
+        $stmt->bindParam(':placa', $datos['placa']);
+        $stmt->bindParam(':transmision', $datos['transmision']);
+        $stmt->bindParam(':id', $datos['id_vehiculo'], PDO::PARAM_INT);
+
+        return $stmt->execute();
+    } catch (PDOException $e) {
+        error_log('updateVehiculo error: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function deleteVehiculo($id) {
+    global $db;
+    try {
+        $stmt = $db->prepare("DELETE FROM vehiculo WHERE id_vehiculo = :id");
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        return $stmt->execute();
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23000) {
+            return "en_uso"; // tiene rentas asociadas
+        }
+        error_log('deleteVehiculo error: ' . $e->getMessage());
+        return false;
+    }
 }
 
 function getAllRentas() {
