@@ -318,6 +318,59 @@ function getAllFallas() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function insertar_falla($datos) {
+    global $db;
+    $id_renta = $datos["id_renta"] ?? 0;
+    $id_usuario = $datos["id_usuario"] ?? 0;
+    $descripcion = $datos["descripcion"] ?? '';
+
+    try {
+        $stmt = $db->prepare("INSERT INTO reporte_falla (id_renta, id_usuario, descripcion, fecha_reporte)
+                               VALUES (:id_renta, :id_usuario, :descripcion, NOW())");
+        $stmt->bindParam(':id_renta', $id_renta, PDO::PARAM_INT);
+        $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+        $stmt->bindParam(':descripcion', $descripcion);
+
+        if ($stmt->execute()) {
+            return $db->lastInsertId();
+        }
+    } catch (PDOException $e) {
+        error_log('insertar_falla error: ' . $e->getMessage());
+    }
+    return false;
+}
+
+function actualizarFalla($id_falla, $id_renta, $id_usuario, $descripcion) {
+    global $db;
+
+    $stmt = $db->prepare("
+        UPDATE reporte_falla
+        SET id_renta = :id_renta, id_usuario = :id_usuario, descripcion = :descripcion
+        WHERE id_falla = :id
+    ");
+
+    $stmt->bindParam(":id_renta", $id_renta, PDO::PARAM_INT);
+    $stmt->bindParam(":id_usuario", $id_usuario, PDO::PARAM_INT);
+    $stmt->bindParam(":descripcion", $descripcion);
+    $stmt->bindParam(":id", $id_falla, PDO::PARAM_INT);
+
+    return $stmt->execute();
+}
+
+function deleteFalla($id_falla) {
+    global $db;
+    try {
+        $stmt = $db->prepare("DELETE FROM reporte_falla WHERE id_falla = :id_falla");
+        $stmt->execute(['id_falla' => $id_falla]);
+        return $stmt->rowCount() > 0;
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23000) {
+            return "en_uso";
+        }
+        return false;
+    }
+}
+
 
 function insertUsuarios($datos){
     global $db;
