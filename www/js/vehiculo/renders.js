@@ -14,8 +14,8 @@ export default function renderVehiculo(vehiculos) {
             <td class="px-6 py-4 text-sm text-gray-700">${v.estado}</td>
             <td class="px-6 py-4 text-sm text-gray-700">${v.sucursal}</td>
             <td class="px-6 py-4 text-sm">
-                <button data-id="${v.id_vehiculo}" class="editBtn btn btn-sm btn-info mr-2">Editar</button>
-                <button data-id="${v.id_vehiculo}" class="deleteBtn btn btn-sm btn-error mr-2">Eliminar</button>
+                <button data-id="${v.id_vehiculo}" class="editBtn btn btn-sm btn-warning text-white mr-2">Editar</button>
+                <button data-id="${v.id_vehiculo}" class="deleteBtn btn btn-sm btn-error text-white mr-2">Eliminar</button>
             </td>
         </tr>
     `).join('');
