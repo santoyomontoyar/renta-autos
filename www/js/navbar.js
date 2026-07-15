@@ -11,11 +11,13 @@ nav.innerHTML = `
       <li><a href="/documento_cliente">Documentos</a></li>
       <li><a href="/vehiculo">Vehículos</a></li>
       <li><a href="/renta">Rentas</a></li>
+      <li><a href="/cargo_adicional">Cargos Adicionales</a></li>
       <li><a href="/seguro">Seguros</a></li>
       <li><a href="/tipo_seguro">Tipos de Seguro</a></li>
       <li><a href="/rol">Roles</a></li>
       <li><a href="/reporte_falla">Fallas</a></li>
       <li><a href="/modelo_vehiculo">Modelos</a></li>
+      <li><a href="/imagen_modelo_vehiculo">Imágenes de Modelos</a></li>
       <li><a href="/sucursal">Sucursales</a></li>
     </ul>
   </div>
