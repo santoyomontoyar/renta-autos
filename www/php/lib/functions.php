@@ -578,6 +578,22 @@ function insertar_sucursal($datos) {
     return false;
 }
 
+function actualizarSucursal($id_sucursal, $nombre, $ciudad) {
+    global $db;
+
+    $stmt = $db->prepare("
+        UPDATE sucursal
+        SET nombre = :nombre, ciudad = :ciudad
+        WHERE id_sucursal = :id
+    ");
+
+    $stmt->bindParam(":nombre", $nombre);
+    $stmt->bindParam(":ciudad", $ciudad);
+    $stmt->bindParam(":id", $id_sucursal);
+
+    return $stmt->execute();
+}
+
 function deleteSucursal($id_sucursal) {
     global $db;
     try {

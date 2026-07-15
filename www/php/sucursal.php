@@ -30,6 +30,14 @@ try {
             ]);
          break;    
 
+          case "update":
+            $ok = actualizarSucursal($_post['id_sucursal'], $_post['nombre'], $_post['ciudad'] ?? '');
+            echo json_encode([
+                "status"  => $ok ? "success" : "error",
+                "message" => $ok ? "Sucursal actualizada" : "No se pudo actualizar la sucursal"
+            ]);
+            break;   
+
         case "delete_sucursal":
             $ok = deleteSucursal($_post['id_sucursal']);
             if ($ok === "en_uso") {
