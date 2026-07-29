@@ -15,11 +15,9 @@ switch ($action) {
             if ($page < 1) $page = 1;
             $offset = ($page - 1) * $limit;
 
-            // Total de vehículos
             $totalRows = (int)$db->query("SELECT COUNT(*) FROM vehiculo")->fetchColumn();
             $totalPages = (int)ceil($totalRows / $limit);
 
-            // Criterios de ordenación
             $orderByParam = $_post['order_by'] ?? 'v.id_vehiculo';
             $orderDirParam = (strtoupper($_post['order_dir'] ?? '') === 'DESC') ? 'DESC' : 'ASC';
             $estadoPrioridad = $_post['estado_prioridad'] ?? 'DISPONIBLE_PRIMERO';
@@ -38,7 +36,6 @@ switch ($action) {
                 $orderClause = "ORDER BY v.id_vehiculo $orderDirParam";
             }
 
-            // Consulta paginada
             $sql = "SELECT 
                         v.id_vehiculo, 
                         v.placa, 

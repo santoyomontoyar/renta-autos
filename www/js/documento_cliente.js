@@ -108,7 +108,6 @@ function wireEvents() {
         });
     }
 
-    // Escuchadores de Filtro y Ordenamiento
     document.querySelector("#orderBySelect").addEventListener("change", (e) => {
         currentOrderBy = e.target.value;
         currentPage = 1;
@@ -139,7 +138,6 @@ function wireEvents() {
         cargarDocumentos();
     });
 
-    // Evento de Paginación
     const paginationControls = document.querySelector("#paginationControls");
     if (paginationControls) {
         paginationControls.addEventListener("click", (e) => {

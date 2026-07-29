@@ -15,22 +15,19 @@ switch ($action) {
             if ($page < 1) $page = 1;
             $offset = ($page - 1) * $limit;
 
-            // Total REAL sin filtrados
             $totalRows = (int)$db->query("SELECT COUNT(*) FROM cliente")->fetchColumn();
             $totalPages = (int)ceil($totalRows / $limit);
 
-            // Determinar ordenamiento
             $orderByParam = $_post['order_by'] ?? 'c.id_cliente';
             $orderDirParam = (strtoupper($_post['order_dir'] ?? '') === 'DESC') ? 'DESC' : 'ASC';
             $estadoPrioridad = $_post['estado_prioridad'] ?? 'ACTIVO_PRIMERO';
 
             if ($orderByParam === 'estado_prioridad') {
-                // Generamos un orden jerárquico por estado usando CASE SQL
                 if ($estadoPrioridad === 'INACTIVO_PRIMERO') {
                     $orderClause = "ORDER BY CASE u.estado WHEN 'Inactivo' THEN 1 WHEN 'Suspendido' THEN 2 ELSE 3 END ASC, c.id_cliente ASC";
                 } elseif ($estadoPrioridad === 'SUSPENDIDO_PRIMERO') {
                     $orderClause = "ORDER BY CASE u.estado WHEN 'Suspendido' THEN 1 WHEN 'Activo' THEN 2 ELSE 3 END ASC, c.id_cliente ASC";
-                } else { // ACTIVO_PRIMERO
+                } else { 
                     $orderClause = "ORDER BY CASE u.estado WHEN 'Activo' THEN 1 WHEN 'Inactivo' THEN 2 ELSE 3 END ASC, c.id_cliente ASC";
                 }
             } elseif ($orderByParam === 'u.nombre') {
@@ -39,7 +36,6 @@ switch ($action) {
                 $orderClause = "ORDER BY c.id_cliente $orderDirParam";
             }
 
-            // Consulta paginada trayendo TODOS los clientes organizados por el criterio
             $sql = "SELECT 
                         c.id_cliente, 
                         c.id_usuario, 

@@ -26,11 +26,9 @@ switch ($action) {
             if ($page < 1) $page = 1;
             $offset = ($page - 1) * $limit;
 
-            // Total de usuarios
             $totalRows = (int)$db->query("SELECT COUNT(*) FROM usuario")->fetchColumn();
             $totalPages = (int)ceil($totalRows / $limit);
 
-            // Criterios de ordenación
             $orderByParam = $_post['order_by'] ?? 'u.id_usuario';
             $orderDirParam = (strtoupper($_post['order_dir'] ?? '') === 'DESC') ? 'DESC' : 'ASC';
             $rolPrioridad = $_post['rol_prioridad'] ?? 'CLIENTE_PRIMERO';
@@ -49,7 +47,6 @@ switch ($action) {
                 $orderClause = "ORDER BY u.id_usuario $orderDirParam";
             }
 
-            // Consulta paginada con ordenamiento
             $sql = "SELECT u.id_usuario, u.nombre, u.apellido, u.correo, u.telefono, u.estado, r.nombre AS rol
                     FROM usuario u
                     INNER JOIN rol r ON u.id_rol = r.id_rol
