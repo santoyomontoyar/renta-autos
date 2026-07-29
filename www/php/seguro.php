@@ -9,6 +9,9 @@ $data = "";
 switch ($action) {
     case 'getAll':
         $data = getAllSeguros();
+        $ordenarPor = $_post['ordenarPor'] ?? 'id_seguro';
+        $direccion = $_post['direccion'] ?? 'ASC';
+        $data = getAllSeguros($ordenarPor, $direccion);
         break;
         case 'getOne':
         $data = getSeguroById($_post['id'] ?? 0);

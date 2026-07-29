@@ -9,11 +9,14 @@ $action = $input['action'] ?? '';
 switch ($action) {
     case 'getAll':
         $data = getAllTipoSeguro();
-        echo json_encode([
-            'status' => 'success',
-            'data' => $data
-        ]);
-        break;
+        $ordenarPor = $input['ordenarPor'] ?? 'id_tipo_seguro';
+    $direccion = $input['direccion'] ?? 'ASC';
+    $data = getAllTipoSeguro($ordenarPor, $direccion);
+    echo json_encode([
+        'status' => 'success',
+        'data' => $data
+    ]);
+    break;
 
     case 'getOne':
         $id = $input['id_tipo_seguro'] ?? null;

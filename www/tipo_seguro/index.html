@@ -14,15 +14,27 @@
     <script src="../js/navbar.js"></script>
 
     <div class="max-w-[1500px] mx-auto">
-        <div class="flex items-center justify-start p-4" id="btnAgregarContainer">
-            <button
-                type="button"
-                id="btnAgregar"
-                class="w-10 h-10 bg-green-500 hover:bg-green-600 text-white font-bold text-xl flex items-center justify-center rounded transition shadow"
-                title="Agregar">
-                +
-            </button>
-        </div>
+        <div class="flex items-center justify-between p-4" id="btnAgregarContainer">
+    <button
+        type="button"
+        id="btnAgregar"
+        class="w-10 h-10 bg-green-500 hover:bg-green-600 text-white font-bold text-xl flex items-center justify-center rounded transition shadow"
+        title="Agregar">
+        +
+    </button>
+
+    <div class="flex items-center gap-2 flex-shrink-0">
+        <label for="ordenTipoSeguro" class="text-sm font-medium text-gray-600 whitespace-nowrap">Ordenar por:</label>
+        <select id="ordenTipoSeguro" class="select select-bordered select-sm w-56">
+            <option value="id_tipo_seguro-ASC">ID (ascendente)</option>
+            <option value="id_tipo_seguro-DESC">ID (descendente)</option>
+            <option value="nombre-ASC">Nombre (A-Z)</option>
+            <option value="nombre-DESC">Nombre (Z-A)</option>
+            <option value="descripcion-ASC">Descripción (A-Z)</option>
+            <option value="descripcion-DESC">Descripción (Z-A)</option>
+        </select>
+    </div>
+</div>
 
         <section id="tableSection" class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <div class="overflow-x-auto">

@@ -214,12 +214,22 @@ function getAllRentas() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function getAllTipoSeguro() {
+function getAllTipoSeguro($ordenarPor = 'id_tipo_seguro', $direccion = 'ASC') {
     global $db;
+
+    $columnasPermitidas = [
+        'id_tipo_seguro' => 'id_tipo_seguro',
+        'nombre'         => 'nombre',
+        'descripcion'    => 'descripcion'
+    ];
+
+    $columna = $columnasPermitidas[$ordenarPor] ?? 'id_tipo_seguro';
+    $direccion = strtoupper($direccion) === 'DESC' ? 'DESC' : 'ASC';
 
     $stmt = $db->prepare("
         SELECT id_tipo_seguro, nombre, descripcion
         FROM tipo_seguro
+        ORDER BY $columna $direccion
     ");
     $stmt->execute();
 
@@ -281,8 +291,17 @@ function deleteTipoSeguro($id){
     return $stmt->execute();
 }
 
-function getAllSeguros() {
+function getAllSeguros($ordenarPor = 'id_seguro', $direccion = 'ASC') {
     global $db;
+
+    $columnasPermitidas = [
+        'id_seguro'    => 's.id_seguro',
+        'tipo_seguro'  => 'ts.nombre',
+        'costo_diario' => 's.costo_diario'
+    ];
+
+    $columna = $columnasPermitidas[$ordenarPor] ?? 's.id_seguro';
+    $direccion = strtoupper($direccion) === 'DESC' ? 'DESC' : 'ASC';
 
     $stmt = $db->prepare("
         SELECT 
@@ -292,11 +311,13 @@ function getAllSeguros() {
         FROM seguro s
         INNER JOIN tipo_seguro ts 
             ON s.id_tipo_seguro = ts.id_tipo_seguro
+        ORDER BY $columna $direccion
     ");
 
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 function insertSeguro($datos) {
     global $db;
     $id_tipo_seguro = $datos["id_tipo_seguro"] ?? 0;
@@ -398,18 +419,25 @@ function getAllRoles() {
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-function getAllsucursal() {
+function getAllsucursal($ordenarPor = 'id_sucursal', $direccion = 'ASC') {
     global $db;
 
-    $stmt = $db->prepare("
-        SELECT 
-            id_sucursal,
-            nombre,
-            ciudad
-        FROM sucursal
-    ");
+    $columnasPermitidas = [
+        'id_sucursal' => 'id_sucursal',
+        'nombre'      => 'nombre',
+        'ciudad'      => 'ciudad'
+    ];
 
+    $columna = $columnasPermitidas[$ordenarPor] ?? 'id_sucursal';
+    $direccion = strtoupper($direccion) === 'DESC' ? 'DESC' : 'ASC';
+
+    $stmt = $db->prepare("
+        SELECT id_sucursal, nombre, ciudad
+        FROM sucursal
+        ORDER BY $columna $direccion
+    ");
     $stmt->execute();
+
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
