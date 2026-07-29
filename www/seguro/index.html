@@ -15,7 +15,7 @@
 
     <div class="max-w-[1500px] mx-auto">
 
-    <div class="flex items-center justify-start p-4" id="btnAgregarContainer">
+    <div class="flex items-center justify-between p-4" id="btnAgregarContainer">
         <button
             type="button"
             id="btnAgregar"
@@ -24,7 +24,9 @@
             +
         </button>
 
-    <select id="ordenSeguro" class="select select-bordered select-sm">
+        <div class="flex items-center gap-2 flex-shrink-0">
+    <label for="ordenSeguro" class="text-sm font-medium text-gray-600 whitespace-nowrap">Ordenar por:</label>
+    <select id="ordenSeguro" class="select select-bordered select-sm w-56">
         <option value="id_seguro-ASC">ID (ascendente)</option>
         <option value="id_seguro-DESC">ID (descendente)</option>
         <option value="tipo_seguro-ASC">Tipo de seguro (A-Z)</option>
@@ -32,6 +34,7 @@
         <option value="costo_diario-ASC">Precio x día (menor a mayor)</option>
         <option value="costo_diario-DESC">Precio x día (mayor a menor)</option>
     </select>
+        </div>
 
     </div>
 
