@@ -2,7 +2,20 @@ import form from './imagen_falla/form.js';
 import renderImagenes from './imagen_falla/renders.js';
 import views, { clearForm } from './imagen_falla/views.js';
 
+import {
+    ordenarDatos,
+    paginar,
+    renderControlesPaginacion,
+    wireSortableHeaders
+} from './imagen_falla_paginacion.js';
+
 let fallas = [];
+let imagenesData = [];
+
+const POR_PAGINA = 50;
+let paginaActual = 1;
+let campoOrden = null;
+let direccionOrden = "asc";
 
 async function post(action, extra = {}) {
     const res = await fetch("../php/imagen_falla.php", {
@@ -15,7 +28,50 @@ async function post(action, extra = {}) {
 
 async function cargarImagenes() {
     const json = await post("getAll");
-    if (json.status === "success") renderImagenes(json.data);
+
+    imagenesData =
+        (json.status === "success" && Array.isArray(json.data))
+            ? json.data
+            : [];
+
+    renderTabla();
+}
+
+function renderTabla() {
+
+    let datos = [...imagenesData];
+
+    if (campoOrden) {
+        datos = ordenarDatos(datos, campoOrden, direccionOrden);
+    }
+
+    const totalPag = Math.max(
+        1,
+        Math.ceil(datos.length / POR_PAGINA)
+    );
+
+    if (paginaActual > totalPag) {
+        paginaActual = totalPag;
+    }
+
+    const datosPagina = paginar(
+        datos,
+        paginaActual,
+        POR_PAGINA
+    );
+
+    renderImagenes(datosPagina);
+
+    renderControlesPaginacion(
+        "paginacionImagenFalla",
+        paginaActual,
+        datos.length,
+        POR_PAGINA,
+        (nuevaPagina) => {
+            paginaActual = nuevaPagina;
+            renderTabla();
+        }
+    );
 }
 
 async function cargarFallas() {
@@ -38,6 +94,13 @@ function wireEvents() {
     document.querySelector("#formContainer").addEventListener("click", (e) => {
         if (e.target.id === "listBtn") views();
         if (e.target.id === "saveBtn") guardarImagen();
+    });
+
+    wireSortableHeaders("#tablaImagenFalla thead", (campo, direccion) => {
+    campoOrden = campo;
+    direccionOrden = direccion;
+    paginaActual = 1;
+    renderTabla();
     });
 }
 

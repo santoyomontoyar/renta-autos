@@ -15,7 +15,7 @@ try {
     switch ($action) {
 
         case "getAll":
-            $data = getAllFallas();
+          $data = getAllFallasConMecanico();
             echo json_encode([
                 "status" => "success",
                 "data" => $data

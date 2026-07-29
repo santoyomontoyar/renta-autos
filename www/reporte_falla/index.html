@@ -27,16 +27,17 @@
 
     <table class="table table-zebra w-full text-lg" id="table">
             <thead>
-                <tr class="text-lg">
-                    <th>ID</th>
-                    <th># Renta</th>
-                    <th>Mecanico</th>
-                    <th>Descripción</th>
-                    <th>Fecha</th>
-                </tr>
+    <tr class="text-lg">
+    <th data-sort="id_falla">ID</th>
+    <th data-sort="id_renta"># Renta</th>
+    <th data-sort="mecanico">Mecanico</th>
+    <th>Descripción</th>
+    <th data-sort="fecha_reporte">Fecha</th>
+    </tr>
             </thead>
             <tbody id="tbody"></tbody>
         </table>
+        <div id="paginacionFallas"></div>
         <div id="formArea" class="hidden"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
