@@ -13,12 +13,48 @@
     <script src="../js/session.js"></script>
     <script src="../js/navbar.js"></script>
 
-     <div id="tableList">
-        <button id="addBtn" class="btn btn-primary mb-4 mt-4">+ Agregar Vehículo</button>
-        <div class="overflow-x-auto">
+    <div id="tableList">
+        <!-- BARRA DE CONTROLES Y ORDENAMIENTO -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 mt-4 bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm">
+            <button id="addBtn" class="btn btn-primary">+ Agregar Vehículo</button>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Criterio Principal -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Ordenar por:</span>
+                    <select id="orderBySelect" class="select select-bordered select-sm bg-white">
+                        <option value="v.id_vehiculo">ID Vehículo</option>
+                        <option value="m.nombre_modelo">Modelo / Marca (A-Z / Z-A)</option>
+                        <option value="m.costo_diario">Precio Renta ($)</option>
+                        <option value="estado_prioridad">Prioridad por Estado</option>
+                    </select>
+                </div>
+
+                <!-- Dirección (Asc/Desc) -->
+                <div class="flex items-center gap-2" id="dirContainer">
+                    <select id="orderDirSelect" class="select select-bordered select-sm bg-white">
+                        <option value="ASC">Ascendente (Menor a Mayor / A-Z)</option>
+                        <option value="DESC">Descendente (Mayor a Menor / Z-A)</option>
+                    </select>
+                </div>
+
+                <!-- Prioridad por Estado (Se activa solo si eliges Prioridad por Estado) -->
+                <div class="flex items-center gap-2 hidden" id="estadoGroupContainer">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Prioridad:</span>
+                    <select id="estadoPrioritySelect" class="select select-bordered select-sm bg-white">
+                        <option value="DISPONIBLE_PRIMERO">Primero Disponibles</option>
+                        <option value="RENTADO_PRIMERO">Primero Rentados</option>
+                        <option value="MANTENIMIENTO_PRIMERO">Primero en Mantenimiento</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
             <table class="table table-zebra w-full" id="tablaVehiculos">
                 <thead>
-                    <tr>
+                    <tr class="bg-gray-100">
                         <th>ID</th>
                         <th>Vehículo / Modelo</th>
                         <th>Placas</th>
@@ -27,11 +63,17 @@
                         <th>Precio Renta</th>
                         <th>Estado</th>
                         <th>Ubicación</th>
-                        <th>Acciones</th>
+                        <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tbody"></tbody>
             </table>
+        </div>
+
+        <!-- CONTROLES DE PAGINACIÓN ABAJO -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t border-gray-200">
+            <span id="pageInfo" class="text-sm text-gray-600 font-medium">Cargando registros...</span>
+            <div class="join" id="paginationControls"></div>
         </div>
     </div>
 

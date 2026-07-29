@@ -4,6 +4,11 @@ const btnGuardar = document.querySelector("#btnGuardar");
 const btnActualizar = document.querySelector("#btnActualizar");
 const tbody = document.querySelector("#tbody");
 
+let currentPage = 1;
+let currentOrderBy = 'u.id_usuario';
+let currentOrderDir = 'ASC';
+let currentRolPriority = 'CLIENTE_PRIMERO';
+
 async function post(action, extra = {}) {
     const res = await fetch("../php/user.php", {
         method: "POST",
@@ -20,15 +25,97 @@ async function cargarRoles(selectEl) {
     }
 }
 
-// Listado
+// Cargar listado con paginación y ordenamiento
 async function cargarUsuarios() {
-    const json = await post("getAll");
-    if (json.status === "success") renderUsuarios(json.data);
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">Cargando registros...</td></tr>`;
+
+    try {
+        const json = await post("getAll", { 
+            page: currentPage,
+            order_by: currentOrderBy,
+            order_dir: currentOrderDir,
+            rol_prioridad: currentRolPriority
+        });
+
+        if (json.status === "success") {
+            renderUsuarios(json.data);
+            renderPagination(json.pagination);
+        } else {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-red-500 py-4">Error al cargar usuarios.</td></tr>`;
+        }
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-red-500 py-4">Error de conexión.</td></tr>`;
+    }
+}
+
+function renderPagination(p) {
+    const container = document.querySelector("#paginationControls");
+    const info = document.querySelector("#pageInfo");
+
+    if (!container || !info) return;
+
+    if (!p || p.totalRows === 0) {
+        info.textContent = "No hay usuarios registrados";
+        container.innerHTML = "";
+        return;
+    }
+
+    const start = (p.page - 1) * p.limit + 1;
+    const end = Math.min(p.page * p.limit, p.totalRows);
+    info.textContent = `Mostrando ${start} a ${end} de ${p.totalRows} usuarios`;
+
+    let html = `<button class="join-item btn btn-sm ${p.page <= 1 ? 'btn-disabled' : ''}" id="prevPageBtn">« Anterior</button>`;
+
+    for (let i = 1; i <= p.totalPages; i++) {
+        if (i === 1 || i === p.totalPages || (i >= p.page - 2 && i <= p.page + 2)) {
+            html += `<button class="join-item btn btn-sm pageBtn ${i === p.page ? 'btn-primary' : ''}" data-page="${i}">${i}</button>`;
+        } else if (i === p.page - 3 || i === p.page + 3) {
+            html += `<button class="join-item btn btn-sm btn-disabled">...</button>`;
+        }
+    }
+
+    html += `<button class="join-item btn btn-sm ${p.page >= p.totalPages ? 'btn-disabled' : ''}" id="nextPageBtn">Siguiente »</button>`;
+
+    container.innerHTML = html;
 }
 
 if (tbody) {
     cargarUsuarios();
 
+    // Eventos de Filtro y Ordenamiento
+    document.querySelector("#orderBySelect").addEventListener("change", (e) => {
+        currentOrderBy = e.target.value;
+        currentPage = 1;
+
+        const dirContainer = document.querySelector("#dirContainer");
+        const rolContainer = document.querySelector("#rolGroupContainer");
+
+        if (currentOrderBy === 'rol_prioridad') {
+            dirContainer.classList.add("hidden");
+            rolContainer.classList.remove("hidden");
+        } else {
+            dirContainer.classList.remove("hidden");
+            rolContainer.classList.add("hidden");
+        }
+
+        cargarUsuarios();
+    });
+
+    document.querySelector("#orderDirSelect").addEventListener("change", (e) => {
+        currentOrderDir = e.target.value;
+        currentPage = 1;
+        cargarUsuarios();
+    });
+
+    document.querySelector("#rolPrioritySelect").addEventListener("change", (e) => {
+        currentRolPriority = e.target.value;
+        currentPage = 1;
+        cargarUsuarios();
+    });
+
+    // Eliminar usuario
     tbody.addEventListener("click", function (evento) {
         if (!evento.target.matches(".btn-error")) return;
         evento.preventDefault();
@@ -36,12 +123,13 @@ if (tbody) {
 
         Swal.fire({
             title: "¿Estás seguro de eliminar este registro?",
-            text: "No vas a poder revertir esto!",
+            text: "¡No vas a poder revertir esto!",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#3085d6",
             cancelButtonColor: "#d33",
-            confirmButtonText: "Confirmar"
+            confirmButtonText: "Confirmar",
+            cancelButtonText: "Cancelar"
         }).then(async (result) => {
             if (!result.isConfirmed) return;
 
@@ -54,9 +142,30 @@ if (tbody) {
             cargarUsuarios();
         });
     });
+
+    // Paginación
+    const paginationControls = document.querySelector("#paginationControls");
+    if (paginationControls) {
+        paginationControls.addEventListener("click", (e) => {
+            const pageBtn = e.target.closest(".pageBtn");
+            const prevBtn = e.target.closest("#prevPageBtn");
+            const nextBtn = e.target.closest("#nextPageBtn");
+
+            if (pageBtn) {
+                currentPage = parseInt(pageBtn.dataset.page);
+                cargarUsuarios();
+            } else if (prevBtn && currentPage > 1) {
+                currentPage--;
+                cargarUsuarios();
+            } else if (nextBtn) {
+                currentPage++;
+                cargarUsuarios();
+            }
+        });
+    }
 }
 
-// INsert
+// Insertar
 if (btnGuardar) {
     const Nombre = document.querySelector("#Nombre");
     const Apellido = document.querySelector("#Apellido");
@@ -92,7 +201,7 @@ if (btnGuardar) {
     }
 }
 
-// Edutar
+// Editar
 if (btnActualizar) {
     const Nombre = document.querySelector("#Nombre");
     const Apellido = document.querySelector("#Apellido");

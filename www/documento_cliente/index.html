@@ -13,29 +13,69 @@
     <script src="../js/session.js"></script>
     <script src="../js/navbar.js"></script>
 
-<div id="tableList">
-    <button id="addBtn" class="btn btn-primary mb-4 mt-4">+ Agregar Documento</button>
-    <div class="overflow-x-auto">
-        <table class="table table-zebra w-full" id="tablaDocumentos">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Cliente</th>
-                    <th>Tipo Documento</th>
-                    <th>Número</th>
-                    <th>Vencimiento</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-        </table>
+    <div id="tableList">
+        <!-- BARRA DE CONTROLES Y ORDENAMIENTO -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 mt-4 bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm">
+            <button id="addBtn" class="btn btn-primary">+ Agregar Documento</button>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Criterio Principal -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Ordenar por:</span>
+                    <select id="orderBySelect" class="select select-bordered select-sm bg-white">
+                        <option value="d.id_documento">ID Documento</option>
+                        <option value="u.nombre">Nombre Cliente (A-Z / Z-A)</option>
+                        <option value="d.numero_documento">Número Documento</option>
+                        <option value="d.fecha_vencimiento">Fecha de Vencimiento</option>
+                        <option value="tipo_prioridad">Prioridad por Tipo Doc.</option>
+                    </select>
+                </div>
+
+                <!-- Dirección (Asc/Desc) -->
+                <div class="flex items-center gap-2" id="dirContainer">
+                    <select id="orderDirSelect" class="select select-bordered select-sm bg-white">
+                        <option value="ASC">Ascendente (Más cercanos / 1-9 / A-Z)</option>
+                        <option value="DESC">Descendente (Más lejanos / 9-1 / Z-A)</option>
+                    </select>
+                </div>
+
+                <!-- Prioridad por Tipo (Se muestra solo al elegir Prioridad por Tipo) -->
+                <div class="flex items-center gap-2 hidden" id="tipoGroupContainer">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Prioridad:</span>
+                    <select id="tipoPrioritySelect" class="select select-bordered select-sm bg-white">
+                        <option value="INE_PRIMERO">Primero INE</option>
+                        <option value="LICENCIA_PRIMERO">Primero Licencia de Conducir</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
+            <table class="table table-zebra w-full" id="tablaDocumentos">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Tipo Documento</th>
+                        <th>Número</th>
+                        <th>Vencimiento</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- PAGINADOR ABAJO -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t border-gray-200">
+            <span id="pageInfo" class="text-sm text-gray-600 font-medium">Cargando registros...</span>
+            <div class="join" id="paginationControls"></div>
+        </div>
     </div>
-</div>
 
+    <div id="formContainer" class="hidden max-w-md bg-white p-6 shadow-xl rounded-2xl border border-gray-100"></div>
 
-<div id="formContainer" class="hidden max-w-md bg-white p-6 shadow-xl rounded-2xl border border-gray-100"></div>
-
-   
     <script type="module" src="../js/documento_cliente.js"></script>
 </body>
 </html>

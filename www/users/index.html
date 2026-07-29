@@ -13,28 +13,70 @@
     <script src="../js/session.js"></script>
     <script src="../js/navbar.js"></script>
 
+    <div id="tableList">
+        <!-- BARRA DE CONTROLES Y ORDENAMIENTO -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 mt-4 bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm">
+            <a href="insertar.html" class="btn btn-primary">
+                + Insertar nuevo usuario
+            </a>
 
-  <div class="mb-4 mt-4">
-        <a href="insertar.html" class="btn btn-primary">
-            Insertar nuevo usuario
-        </a>
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Criterio Principal -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Ordenar por:</span>
+                    <select id="orderBySelect" class="select select-bordered select-sm bg-white">
+                        <option value="u.id_usuario">ID Usuario</option>
+                        <option value="u.nombre">Nombre (Alfabético A-Z / Z-A)</option>
+                        <option value="rol_prioridad">Prioridad por Rol</option>
+                    </select>
+                </div>
+
+                <!-- Dirección (Asc/Desc) -->
+                <div class="flex items-center gap-2" id="dirContainer">
+                    <select id="orderDirSelect" class="select select-bordered select-sm bg-white">
+                        <option value="ASC">Ascendente (1-9 / A-Z)</option>
+                        <option value="DESC">Descendente (9-1 / Z-A)</option>
+                    </select>
+                </div>
+
+                <!-- Prioridad Específica por Rol (Aparece solo si eliges Prioridad por Rol) -->
+                <div class="flex items-center gap-2 hidden" id="rolGroupContainer">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Prioridad:</span>
+                    <select id="rolPrioritySelect" class="select select-bordered select-sm bg-white">
+                        <option value="CLIENTE_PRIMERO">Primero Clientes</option>
+                        <option value="ADMIN_PRIMERO">Primero Administradores</option>
+                        <option value="MECANICO_PRIMERO">Primero Mecánicos</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
+            <table class="table table-zebra w-full" id="tablaUsuarios">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Correo</th>
+                        <th>Teléfono</th>
+                        <th>Estado</th>
+                        <th>Rol</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- PAGINADOR ABAJO -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t border-gray-200">
+            <span id="pageInfo" class="text-sm text-gray-600 font-medium">Cargando registros...</span>
+            <div class="join" id="paginationControls"></div>
+        </div>
     </div>
-    <table class="table table-zebra w-full" id="tablaUsuarios">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nombre</th>
-          <th>Apellido</th>
-          <th>Correo</th>
-          <th>Teléfono</th>
-          <th>Estado</th>
-          <th>Rol</th>
-          <th>acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-   <script type="module" src="../js/user.js"></script>
+
+    <script type="module" src="../js/user.js"></script>
 </body>
 </html>
