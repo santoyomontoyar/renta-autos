@@ -2,6 +2,7 @@ import getFallas, { insertarFalla, actualizarFalla, eliminarFalla } from './fall
 import renderFallas from './falla_renders.js'
 import views, { clearForm } from './falla_views.js'
 import form from './falla_form.js'
+import { ordenarDatos, paginar, renderControlesPaginacion, wireSortableHeaders } from './reporte_falla_paginacion.js'
  
 const table = document.querySelector('#table');
 const formArea = document.querySelector('#formArea');
@@ -14,34 +15,65 @@ const id_renta = document.querySelector('#id_renta');
 const id_usuario = document.querySelector('#id_usuario');
 const descripcion = document.querySelector('#descripcion');
 const btnGuardar = document.querySelector('#btnGuardar');
- 
+
+const POR_PAGINA = 50;
 let fallas = await getFallas();
-renderFallas(fallas);
- 
+let paginaActual = 1;
+let campoOrden = null;
+let direccionOrden = 'asc';
+
+function renderTabla() {
+    let datos = [...fallas];
+
+    if (campoOrden) {
+        datos = ordenarDatos(datos, campoOrden, direccionOrden);
+    }
+
+    const totalPag = Math.max(1, Math.ceil(datos.length / POR_PAGINA));
+    if (paginaActual > totalPag) paginaActual = totalPag;
+
+    const datosPagina = paginar(datos, paginaActual, POR_PAGINA);
+    renderFallas(datosPagina);
+
+    renderControlesPaginacion('paginacionFallas', paginaActual, datos.length, POR_PAGINA, (nuevaPagina) => {
+        paginaActual = nuevaPagina;
+        renderTabla();
+    });
+}
+
+wireSortableHeaders('#table thead', (campo, direccion) => {
+    campoOrden = campo;
+    direccionOrden = direccion;
+    paginaActual = 1;
+    renderTabla();
+});
+
+renderTabla();
+
 let idEditar = null;
- 
+
 listBtn.addEventListener('click', function () {
     views();
 });
- 
+
 addForm.addEventListener('click', function () {
     views();
     clearForm();
     idEditar = null;
 });
- 
+
 table.addEventListener('click', function (e) {
     if (e.target.classList.contains('editBtn')) {
         const id = e.target.dataset.id;
         const falla = fallas.find(f => f.id_falla == id);
- 
+
         idEditar = id;
         id_renta.value = falla.id_renta;
         id_usuario.value = falla.id_usuario;
         descripcion.value = falla.descripcion;
         views();
     }
- 
+
     if (e.target.classList.contains('deleteBtn')) {
         const id = e.target.dataset.id;
 

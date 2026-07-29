@@ -18,18 +18,19 @@
         <div class="overflow-x-auto">
             <table class="table table-zebra w-full" id="tablaImagenes">
                 <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Vista Previa</th>
-                        <th>Modelo Vehículo</th>
-                        <th>URL del Archivo</th>
-                        <th>Tipo de Foto</th>
-                        <th>Acciones</th>
-                    </tr>
+ <tr>
+    <th data-sort="id_imagen">ID</th>
+    <th>Vista Previa</th>
+    <th data-sort="marca">Modelo Vehículo</th>
+    <th>URL del Archivo</th>
+    <th data-sort="es_principal">Tipo de Foto</th>
+    <th>Acciones</th>
+ </tr>
                 </thead>
                 <tbody id="tbody"></tbody>
             </table>
         </div>
+        <div id="paginacionImagenModelo" class="mt-4"></div>
     </div>
 
     <div id="formContainer" class="hidden max-w-md bg-white p-6 shadow-xl rounded-2xl border border-gray-100"></div>

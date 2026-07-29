@@ -16,19 +16,20 @@
     <div id="tableList">
         <button id="addBtn" class="btn btn-primary mb-4 mt-4">+ Agregar Imagen</button>
         <div class="overflow-x-auto">
-            <table class="table table-zebra w-full">
+            <table class="table table-zebra w-full" id="tablaImagenFalla">
                 <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Referencia falla</th>
-                        <th>Imagen</th>
-                        <th>Fecha</th>
-                        <th>Acciones</th>
-                    </tr>
+    <tr>
+    <th data-sort="id_imagen">ID</th>
+    <th data-sort="falla_descripcion">Referencia falla</th>
+    <th>Imagen</th>
+    <th data-sort="fecha_subida">Fecha</th>
+    <th>Acciones</th>
+    </tr>
                 </thead>
                 <tbody id="tbody"></tbody>
             </table>
         </div>
+        <div id="paginacionImagenFalla" class="mt-4"></div>
     </div>
 
     <div id="formContainer" class="hidden max-w-md"></div>

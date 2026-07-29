@@ -957,3 +957,22 @@ function deleteImagenFalla($id_imagen) {
         return false;
     }
 }
+
+function getAllFallasConMecanico() {
+    global $db;
+
+    $stmt = $db->prepare("
+        SELECT
+            f.id_falla,
+            f.id_renta,
+            f.id_usuario,
+            CONCAT(u.nombre, ' ', u.apellido) AS mecanico,
+            f.descripcion,
+            f.fecha_reporte
+        FROM reporte_falla f
+        INNER JOIN usuario u ON f.id_usuario = u.id_usuario
+    ");
+
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}

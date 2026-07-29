@@ -2,7 +2,20 @@ import form from './imagen_modelo_vehiculo/form.js';
 import renderImagen from './imagen_modelo_vehiculo/renders.js';
 import views, { clearForm } from './imagen_modelo_vehiculo/views.js';
 
+import {
+    ordenarDatos,
+    paginar,
+    renderControlesPaginacion,
+    wireSortableHeaders
+} from './imagen_modelo_vehiculo_paginacion.js';
+
 let modelos = [];
+let imagenesData = [];
+
+const POR_PAGINA = 50;
+let paginaActual = 1;
+let campoOrden = null;
+let direccionOrden = "asc";
 
 async function cargarImagenes() {
     const res = await fetch("../php/imagen_modelo_vehiculo.php", {
@@ -10,8 +23,52 @@ async function cargarImagenes() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "getAll" })
     });
+
     const json = await res.json();
-    if (json.status === "success") renderImagen(json.data);
+
+    imagenesData =
+        (json.status === "success" && Array.isArray(json.data))
+            ? json.data
+            : [];
+
+    renderTabla();
+}
+
+function renderTabla() {
+
+    let datos = [...imagenesData];
+
+    if (campoOrden) {
+        datos = ordenarDatos(datos, campoOrden, direccionOrden);
+    }
+
+    const totalPag = Math.max(
+        1,
+        Math.ceil(datos.length / POR_PAGINA)
+    );
+
+    if (paginaActual > totalPag) {
+        paginaActual = totalPag;
+    }
+
+    const datosPagina = paginar(
+        datos,
+        paginaActual,
+        POR_PAGINA
+    );
+
+    renderImagen(datosPagina);
+
+    renderControlesPaginacion(
+        "paginacionImagenModelo",
+        paginaActual,
+        datos.length,
+        POR_PAGINA,
+        (nuevaPagina) => {
+            paginaActual = nuevaPagina;
+            renderTabla();
+        }
+    );
 }
 
 async function cargarModelos() {
@@ -40,6 +97,14 @@ function wireEvents() {
         if (e.target.id === "listBtn") views();
         if (e.target.id === "saveBtn") guardarImagen();
     });
+
+    wireSortableHeaders("#tablaImagenes thead", (campo, direccion) => {
+    campoOrden = campo;
+    direccionOrden = direccion;
+    paginaActual = 1;
+    renderTabla();
+    });
+
 }
 
 async function editarImagen(id) {

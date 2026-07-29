@@ -7,7 +7,7 @@ export default function renderFallas(fallas) {
         <tr>
             <td>${d.id_falla}</td>
             <td>${d.id_renta}</td>
-            <td>${d.id_usuario}</td>
+            <td>${d.mecanico ?? d.id_usuario}</td>
             <td>${d.descripcion}</td>
             <td>${d.fecha_reporte}</td>
             <td>

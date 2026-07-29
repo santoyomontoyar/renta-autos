@@ -6,6 +6,16 @@ import {
     deleteModelo
 } from "./api_modelo_vehiculo.js?v=2";
 
+import {
+    ordenarDatos,
+    wireSortableHeaders
+} from "./modelo_vehiculo_paginacion.js";
+
+
+let modelosData = [];
+let campoOrden = null;
+let direccionOrden = "asc";
+
 document.addEventListener("DOMContentLoaded", () => {
     const btnAgregar = document.getElementById("btnAgregar");
     const btnCancelarAgregar = document.getElementById("btnCancelarAgregar");
@@ -16,21 +26,43 @@ document.addEventListener("DOMContentLoaded", () => {
     btnCancelarAgregar.addEventListener("click", cerrarFormulario);
     form.addEventListener("submit", guardarModelo);
     tbody.addEventListener("click", manejarAccionesTabla);
+    wireSortableHeaders("#tablaModelos thead", (campo, direccion) => {
+    campoOrden = campo;
+    direccionOrden = direccion;
+    renderTabla();
+});
 
     cargarModelos();
     mostrarVistaTabla();
 });
 
 async function cargarModelos() {
-    const tbody = document.getElementById("tbody");
-
     try {
         const json = await getAllModelos();
+        modelosData =
+            (json.status === "success" && Array.isArray(json.data))
+                ? json.data
+                : [];
 
-        if (json.status === "success" && Array.isArray(json.data) && json.data.length > 0) {
-            tbody.innerHTML = json.data.map(d => `
+        renderTabla();
+    } catch (err) {
+        console.error("Error al cargar modelos:", err);
+        modelosData = [];
+        renderTabla();
+    }
+}
+
+function renderTabla() {
+    const tbody = document.getElementById("tbody");
+
+    let datos = [...modelosData];
+    if (campoOrden) {
+        datos = ordenarDatos(datos, campoOrden, direccionOrden);
+    }
+
+    if (datos.length > 0) {
+        tbody.innerHTML = datos.map(d => `
             <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                
                  <td class="px-5 py-4 text-center font-medium text-gray-900">#${d.id_modelo}</td>
                     <td class="px-5 py-4 text-center text-gray-700 font-medium">${d.nombre_modelo ?? ""}</td>
                     <td class="px-5 py-4 text-center text-gray-700">${d.marca ?? ""}</td>
@@ -39,44 +71,23 @@ async function cargarModelos() {
                     <td class="px-5 py-4 text-center text-gray-700">$${d.costo_diario ?? ""}</td>
                     <td class="px-5 py-4">
                         <div class="flex justify-center gap-2">
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-warning"
-                                data-action="edit"
-                                data-id="${d.id_modelo}">
-                                Editar
-                            </button>
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-error"
-                                data-action="delete"
-                                data-id="${d.id_modelo}">
-                                Eliminar
-                            </button>
+                            <button type="button" class="btn btn-sm btn-warning" data-action="edit" data-id="${d.id_modelo}">Editar</button>
+                            <button type="button" class="btn btn-sm btn-error" data-action="delete" data-id="${d.id_modelo}">Eliminar</button>
                         </div>
                     </td>
                 </tr>
-            `).join("");
-        } else {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="text-center py-6 text-gray-500">
-                        No hay modelos registrados.
-                    </td>
-                </tr>
-            `;
-        }
-    } catch (err) {
-        console.error("Error al cargar modelos:", err);
+        `).join("");
+    } else {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center py-6 text-red-500">
-                    Ocurrió un error al cargar los datos.
+                <td colspan="7" class="text-center py-6 text-gray-500">
+                    No hay modelos registrados.
                 </td>
             </tr>
         `;
     }
 }
+
 function manejarAccionesTabla(e) {
     const btn = e.target.closest("button[data-action]");
     if (!btn) return;
