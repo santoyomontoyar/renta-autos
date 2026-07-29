@@ -24,39 +24,6 @@ export function ordenarDatos(datos, campo, direccion) {
     });
 }
 
-export function paginar(datos, pagina, porPagina) {
-    const inicio = (pagina - 1) * porPagina;
-    return datos.slice(inicio, inicio + porPagina);
-}
-
-export function renderControlesPaginacion(contenedorId, paginaActual, totalRegistros, porPagina, onCambiarPagina) {
-    const cont = document.getElementById(contenedorId);
-    if (!cont) return;
-
-    const totalPag = Math.max(1, Math.ceil(totalRegistros / porPagina));
-
-    cont.innerHTML = `
-        <div class="flex items-center justify-between mt-4 flex-wrap gap-2">
-            <span class="text-sm text-gray-600">
-                Mostrando ${totalRegistros === 0 ? 0 : ((paginaActual - 1) * porPagina) + 1}
-                - ${Math.min(paginaActual * porPagina, totalRegistros)}
-                de ${totalRegistros} registros
-            </span>
-            <div class="flex gap-2 items-center">
-                <button type="button" id="btnPagAnterior" class="btn btn-sm" ${paginaActual <= 1 ? "disabled" : ""}>« Anterior</button>
-                <span class="text-sm">Página ${paginaActual} de ${totalPag}</span>
-                <button type="button" id="btnPagSiguiente" class="btn btn-sm" ${paginaActual >= totalPag ? "disabled" : ""}>Siguiente »</button>
-            </div>
-        </div>
-    `;
-
-    const btnAnterior = document.getElementById("btnPagAnterior");
-    const btnSiguiente = document.getElementById("btnPagSiguiente");
-
-    if (btnAnterior) btnAnterior.addEventListener("click", () => onCambiarPagina(paginaActual - 1));
-    if (btnSiguiente) btnSiguiente.addEventListener("click", () => onCambiarPagina(paginaActual + 1));
-}
-
 export function wireSortableHeaders(theadSelector, onSortChange) {
     const encabezados = document.querySelectorAll(`${theadSelector} th[data-sort]`);
 

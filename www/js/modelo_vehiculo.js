@@ -8,14 +8,11 @@ import {
 
 import {
     ordenarDatos,
-    paginar,
-    renderControlesPaginacion,
     wireSortableHeaders
 } from "./modelo_vehiculo_paginacion.js";
 
-const POR_PAGINA = 50;
+
 let modelosData = [];
-let paginaActual = 1;
 let campoOrden = null;
 let direccionOrden = "asc";
 
@@ -32,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
     wireSortableHeaders("#tablaModelos thead", (campo, direccion) => {
     campoOrden = campo;
     direccionOrden = direccion;
-    paginaActual = 1;
     renderTabla();
 });
 
@@ -60,56 +56,28 @@ function renderTabla() {
     const tbody = document.getElementById("tbody");
 
     let datos = [...modelosData];
-
     if (campoOrden) {
         datos = ordenarDatos(datos, campoOrden, direccionOrden);
     }
 
-    const totalPag = Math.max(1, Math.ceil(datos.length / POR_PAGINA));
-
-    if (paginaActual > totalPag) {
-        paginaActual = totalPag;
-    }
-
-    const datosPagina = paginar(datos, paginaActual, POR_PAGINA);
-
-    if (datosPagina.length > 0) {
-
-        tbody.innerHTML = datosPagina.map(d => `
+    if (datos.length > 0) {
+        tbody.innerHTML = datos.map(d => `
             <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-
-                <td class="px-5 py-4 text-center font-medium text-gray-900">#${d.id_modelo}</td>
-                <td class="px-5 py-4 text-center text-gray-700 font-medium">${d.nombre_modelo ?? ""}</td>
-                <td class="px-5 py-4 text-center text-gray-700">${d.marca ?? ""}</td>
-                <td class="px-5 py-4 text-center text-gray-700">${d.year ?? ""}</td>
-                <td class="px-5 py-4 text-center text-gray-700">${d.categoria ?? ""}</td>
-                <td class="px-5 py-4 text-center text-gray-700">$${d.costo_diario ?? ""}</td>
-
-                <td class="px-5 py-4">
-                    <div class="flex justify-center gap-2">
-                        <button
-                            type="button"
-                            class="btn btn-sm btn-warning"
-                            data-action="edit"
-                            data-id="${d.id_modelo}">
-                            Editar
-                        </button>
-
-                        <button
-                            type="button"
-                            class="btn btn-sm btn-error"
-                            data-action="delete"
-                            data-id="${d.id_modelo}">
-                            Eliminar
-                        </button>
-                    </div>
-                </td>
-
-            </tr>
+                 <td class="px-5 py-4 text-center font-medium text-gray-900">#${d.id_modelo}</td>
+                    <td class="px-5 py-4 text-center text-gray-700 font-medium">${d.nombre_modelo ?? ""}</td>
+                    <td class="px-5 py-4 text-center text-gray-700">${d.marca ?? ""}</td>
+                    <td class="px-5 py-4 text-center text-gray-700">${d.year ?? ""}</td>
+                    <td class="px-5 py-4 text-center text-gray-700">${d.categoria ?? ""}</td>
+                    <td class="px-5 py-4 text-center text-gray-700">$${d.costo_diario ?? ""}</td>
+                    <td class="px-5 py-4">
+                        <div class="flex justify-center gap-2">
+                            <button type="button" class="btn btn-sm btn-warning" data-action="edit" data-id="${d.id_modelo}">Editar</button>
+                            <button type="button" class="btn btn-sm btn-error" data-action="delete" data-id="${d.id_modelo}">Eliminar</button>
+                        </div>
+                    </td>
+                </tr>
         `).join("");
-
     } else {
-
         tbody.innerHTML = `
             <tr>
                 <td colspan="7" class="text-center py-6 text-gray-500">
@@ -117,20 +85,9 @@ function renderTabla() {
                 </td>
             </tr>
         `;
-
     }
-
-    renderControlesPaginacion(
-        "paginacionModelos",
-        paginaActual,
-        datos.length,
-        POR_PAGINA,
-        (nuevaPagina) => {
-            paginaActual = nuevaPagina;
-            renderTabla();
-        }
-    );
 }
+
 function manejarAccionesTabla(e) {
     const btn = e.target.closest("button[data-action]");
     if (!btn) return;
