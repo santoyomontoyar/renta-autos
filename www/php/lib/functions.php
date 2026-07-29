@@ -419,18 +419,25 @@ function getAllRoles() {
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-function getAllsucursal() {
+function getAllsucursal($ordenarPor = 'id_sucursal', $direccion = 'ASC') {
     global $db;
 
-    $stmt = $db->prepare("
-        SELECT 
-            id_sucursal,
-            nombre,
-            ciudad
-        FROM sucursal
-    ");
+    $columnasPermitidas = [
+        'id_sucursal' => 'id_sucursal',
+        'nombre'      => 'nombre',
+        'ciudad'      => 'ciudad'
+    ];
 
+    $columna = $columnasPermitidas[$ordenarPor] ?? 'id_sucursal';
+    $direccion = strtoupper($direccion) === 'DESC' ? 'DESC' : 'ASC';
+
+    $stmt = $db->prepare("
+        SELECT id_sucursal, nombre, ciudad
+        FROM sucursal
+        ORDER BY $columna $direccion
+    ");
     $stmt->execute();
+
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 

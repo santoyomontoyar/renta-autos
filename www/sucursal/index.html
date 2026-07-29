@@ -18,12 +18,20 @@
      <div class="max-w-7xl mx-auto mt-8 px-4">
 
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-4xl font-bold">Sucursal</h1>
-            <div>
-                 <button id="listBtn" class="btn btn-lg btn-primary text-lg hidden">Volver</button>
-                 <button id="addForm" class="btn btn-lg btn-primary text-lg max">Agregar</button>
-            </div>
-        </div>
+    <h1 class="text-4xl font-bold">Sucursal</h1>
+    <div class="flex items-center gap-3">
+         <button id="listBtn" class="btn btn-lg btn-primary text-lg hidden">Volver</button>
+         <button id="addForm" class="btn btn-lg btn-primary text-lg max">Agregar</button>
+         <select id="ordenSucursal" class="select select-bordered">
+            <option value="id_sucursal-ASC">ID (ascendente)</option>
+            <option value="id_sucursal-DESC">ID (descendente)</option>
+            <option value="nombre-ASC">Nombre (A-Z)</option>
+            <option value="nombre-DESC">Nombre (Z-A)</option>
+            <option value="ciudad-ASC">Ciudad (A-Z)</option>
+            <option value="ciudad-DESC">Ciudad (Z-A)</option>
+        </select>
+    </div>
+</div>
 
      <table class="table table-zebra w-full text-lg" id="table">
             <thead>

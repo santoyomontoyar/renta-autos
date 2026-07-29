@@ -7,6 +7,7 @@ const table = document.querySelector('#table');
 const formArea = document.querySelector('#formArea');
 const addForm = document.querySelector('#addForm');
 const listBtn = document.querySelector('#listBtn');
+const ordenSucursal = document.querySelector('#ordenSucursal');
  
 formArea.innerHTML = form();
  
@@ -14,10 +15,26 @@ const name = document.querySelector('#name');
 const ciudad = document.querySelector('#ciudad');
 const btnGuardar = document.querySelector('#btnGuardar');
  
-let sucursales = await getSucursal();
-renderSucursal(sucursales);
-
+let sucursales = [];
 let idEditar = null;
+
+function ordenActual() {
+    return ordenSucursal.value.split('-');
+}
+
+async function cargarSucursales(ordenarPor, direccion) {
+    const [op, dir] = [ordenarPor, direccion].every(Boolean) ? [ordenarPor, direccion] : ordenActual();
+    sucursales = await getSucursal(op, dir);
+    renderSucursal(sucursales);
+}
+
+await cargarSucursales("id_sucursal", "ASC");
+
+ordenSucursal.addEventListener('change', () => {
+    const [ordenarPor, direccion] = ordenActual();
+    cargarSucursales(ordenarPor, direccion);
+});
+
 
 listBtn.addEventListener('click', function () {
     views();
@@ -60,8 +77,7 @@ table.addEventListener('click', function (e) {
                     : { title: 'Error', text: json.message, icon: 'error' }; 
     
               Swal.fire(response).then(async () => {
-                        sucursales = await getSucursal();
-                        renderSucursal(sucursales);
+                        await cargarSucursales(); 
                     });
                 }
             });
@@ -88,8 +104,7 @@ btnGuardar.addEventListener("click", async function (e) {
                 idEditar = null
                 clearForm();
                 views();
-                sucursales = await getSucursal();
-                renderSucursal(sucursales);
+                await cargarSucursales();
             } else {
                 Swal.fire({ title: 'Error', text: json.message || 'No se pudo guardar', icon: 'error' });
             }

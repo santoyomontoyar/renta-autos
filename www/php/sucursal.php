@@ -15,12 +15,14 @@ try {
     switch ($action) {
 
         case "getAll":
-            $data = getAllsucursal();
-            echo json_encode([
-                "status" => "success",
-                "data" => $data
-            ]);
-            break;
+            $ordenarPor = $_post['ordenarPor'] ?? 'id_sucursal';
+            $direccion = $_post['direccion'] ?? 'ASC';
+            $data = getAllsucursal($ordenarPor, $direccion);
+    echo json_encode([
+        "status" => "success",
+        "data" => $data
+    ]);
+    break;
 
         case "insert":
           $data = insertar_sucursal($_post);
