@@ -1,4 +1,4 @@
-import renderRenta from './renta/renders.js';
+import renderRenta, { renderPagination } from './renta/renders.js';
 import { poblarSelects, calcularPrecioTotal, resolverCliente, actualizarPlacaCascada, resolverVehiculoPorPlaca, hayConflictoReserva, clienteTieneRentaActiva } from './renta/catalogos.js';
 
 async function post(action, extra = {}) {
@@ -12,7 +12,128 @@ async function post(action, extra = {}) {
 
 const tbody = document.querySelector("#tbody");
 if (tbody) {
+    const pageSizeSelect = document.querySelectorAll('.pageSize');
+    const paginationEl = document.querySelectorAll('.pagination');
+    const buscadorInput = document.querySelector('#buscador');
+
+    let rentas = [];
+    let currentPage = 1;
+    let pageSize = Number(pageSizeSelect[0]?.value) || 10;
+    let sortColumn = 'id_renta';
+    let sortDirection = 'asc';
+    let textoBusqueda = '';
+
+    function getFilteredRentas() {
+        if (!textoBusqueda) return rentas;
+
+        const q = textoBusqueda.toLowerCase();
+        return rentas.filter(r =>
+            String(r.id_renta).includes(q) ||
+            (r.cliente ?? '').toLowerCase().includes(q) ||
+            (r.vehiculo ?? '').toLowerCase().includes(q) ||
+            (r.seguro ?? '').toLowerCase().includes(q) ||
+            (r.sucursal_origen ?? '').toLowerCase().includes(q) ||
+            (r.sucursal_destino ?? '').toLowerCase().includes(q) ||
+            (r.estado ?? '').toLowerCase().includes(q) ||
+            (r.estado_deposito ?? '').toLowerCase().includes(q)
+        );
+    }
+
+    function getSortedRentas() {
+    const columnasNumericas = ['id_renta', 'monto_deposito', 'precio_cobrado'];
+    const base = getFilteredRentas();
+
+    return [...base].sort((a, b) => {
+        let valA = a[sortColumn];
+        let valB = b[sortColumn];
+
+        if (columnasNumericas.includes(sortColumn)) {
+            valA = Number(valA);
+            valB = Number(valB);
+        } else {
+            valA = String(valA ?? '').toLowerCase();
+            valB = String(valB ?? '').toLowerCase();
+        }
+
+        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+    function updateSortIcons() {
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            const icon = th.querySelector('.sortIcon');
+            icon.textContent = th.dataset.sort === sortColumn
+                ? (sortDirection === 'asc' ? '▲' : '▼')
+                : '';
+        });
+    }
+
+    function renderTable() {
+        const sorted = getSortedRentas();
+        const totalItems = sorted.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const start = (currentPage - 1) * pageSize;
+        const pageItems = sorted.slice(start, start + pageSize);
+
+        renderRenta(pageItems);
+        renderPagination(totalItems, currentPage, pageSize);
+        updateSortIcons();
+    }
+
+    async function cargarRentas() {
+        const json = await post("getAll");
+        if (json.status === "success") {
+            rentas = json.data;
+            renderTable();
+        }
+    }
+
     cargarRentas();
+
+        buscadorInput.addEventListener('input', (e) => {
+        textoBusqueda = e.target.value.trim();
+        currentPage = 1;
+        renderTable();
+    });
+
+    document.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            const col = th.dataset.sort;
+            if (sortColumn === col) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = col;
+                sortDirection = 'asc';
+            }
+            currentPage = 1;
+            renderTable();
+        });
+    });
+
+  pageSizeSelect.forEach(select => {
+    select.addEventListener('change', (e) => {
+        pageSize = Number(e.target.value);
+        currentPage = 1;
+        pageSizeSelect.forEach(s => s.value = pageSize); 
+        renderTable();
+    });
+});
+
+  paginationEl.forEach(el => {
+    el.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-page]');
+        if (!btn || btn.disabled) return;
+        currentPage = Number(btn.dataset.page);
+        renderTable();
+    });
+});   
+
 
     tbody.addEventListener("click", async (e) => {
         if (!e.target.classList.contains("deleteBtn")) return;
@@ -38,15 +159,10 @@ if (tbody) {
     });
 }
 
-async function cargarRentas() {
-    const json = await post("getAll");
-    if (json.status === "success") renderRenta(json.data);
-}
-
 const btnGuardar = document.getElementById("btnGuardar");
 if (btnGuardar) {
     const params = new URLSearchParams(window.location.search);
-    const id_renta = params.get("id"); // null = insertar, con valor = editar
+    const id_renta = params.get("id"); 
 
     let listaVehiculos = [];
     let listaSeguros = [];
@@ -110,7 +226,7 @@ if (vehiculoEncontrado) {
 });
 })();
 
-    document.getElementById("cliente_texto").addEventListener("input", () => resolverCliente(listaClientes));
+document.getElementById("cliente_texto").addEventListener("input", () => resolverCliente(listaClientes));
 document.getElementById("vehiculo_texto").addEventListener("input", () => actualizarPlacaCascada(listaVehiculos));
 document.getElementById("placa_texto").addEventListener("input", () => {
     resolverVehiculoPorPlaca(listaVehiculos);

@@ -13,34 +13,56 @@
   <script src="../js/session.js"></script>
   <script src="../js/navbar.js"></script>
 
-  <div class="flex mb-4 mt-4 mb-4">
+  <div class="flex justify-between items-center mb-4 mt-4">
     <a href="insertar.html" class="btn btn-primary">
          Registrar
-    </a>
-</div>
+  </a>
+      <input
+        type="text"
+        id="buscador"
+        placeholder="Buscar por cliente, vehículo, sucursal..."
+        class="input input-bordered w-80">
+
+  <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <span>Mostrar</span>
+         <select class="pageSize select select-bordered select-sm">
+           <option value="50">50</option>
+           <option value="100" selected>100</option>
+           <option value="150">150</option>
+         </select>
+            <span>registros</span>
+        </div>
+    <div class="pagination flex items-center gap-2"></div>
+    </div>
+  </div>
 
         <div class="overflow-x-auto">
           <table class="table table-zebra w-full">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Vehículo</th>
-                <th>Seguro</th>
-                <th>Sucursal Origen</th>
-                <th>Sucursal Destino</th>
-                <th>Fecha Inicio</th>
-                <th>Fecha Fin</th>
-                <th>Depósito</th>
-                <th>Estado Depósito</th>
-                <th>Precio</th>
-                <th>Estado renta</th>
+                <th data-sort="id_renta" class="cursor-pointer select-none">ID<span class="sortIcon"></span></th>
+                <th data-sort="cliente" class="cursor-pointer select-none">Cliente<span class="sortIcon"></span></th>
+                <th data-sort="vehiculo" class="cursor-pointer select-none">Vehículo<span class="sortIcon"></span></th>
+                <th data-sort="seguro" class="cursor-pointer select-none">Seguro<span class="sortIcon"></span></th>
+                <th data-sort="sucursal_origen" class="cursor-pointer select-none"> Sucursal Origen<span class="sortIcon"></span></th>
+                <th data-sort="sucursal_destino" class="cursor-pointer select-none"> Sucursal Destino<span class="sortIcon"></span></th>
+                <th data-sort="fecha_inicio" class="cursor-pointer select-none">Fecha Inicio<span class="sortIcon"></span></th>
+                <th data-sort="fecha_fin" class="cursor-pointer select-none">Fecha Fin<span class="sortIcon"></span></th>
+                <th data-sort="monto_deposito" class="cursor-pointer select-none">Depósito<span class="sortIcon"></span></th>
+                <th data-sort="estado_deposito" class="cursor-pointer select-none">Estado Depósito<span class="sortIcon"></span></th>
+                <th data-sort="precio_cobrado" class="cursor-pointer select-none">Precio<span class="sortIcon"></span></th>
+                <th data-sort="estado" class="cursor-pointer select-none">Estado renta<span class="sortIcon"></span></th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="tbody"></tbody>
           </table>
         </div>
+
+<div class="flex justify-end items-center gap-2 mt-4">
+    <div class="pagination flex items-center gap-2"></div>
+</div>
 
   <script type="module" src="../js/renta.js"></script>
 </body>

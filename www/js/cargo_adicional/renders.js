@@ -38,3 +38,22 @@ export default function renderCargo(cargos) {
         `;
     }).join('');
 }
+
+export function renderPagination(totalItems, currentPage, pageSize) {
+    const paginationEls = document.querySelectorAll('.pagination');
+    if (paginationEls.length === 0) return;
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+    const html = totalPages <= 1 ? "" : `
+        <button class="btn btn-sm" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>
+            Anterior
+        </button>
+        <span class="mx-2">Página ${currentPage} de ${totalPages}</span>
+        <button class="btn btn-sm" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>
+            Siguiente
+        </button>
+    `;
+
+    paginationEls.forEach(el => el.innerHTML = html);
+}   

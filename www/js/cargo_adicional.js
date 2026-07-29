@@ -1,9 +1,78 @@
 import form from './cargo_adicional/form.js';
-import renderCargo from './cargo_adicional/renders.js';
+import renderCargo, { renderPagination } from './cargo_adicional/renders.js';
 import views, { clearForm } from './cargo_adicional/views.js';
 
 let rentas = [];
 let fallas = [];
+let cargos = [];
+
+let currentPage = 1;
+const pageSizeSelect = document.querySelectorAll('.pageSize');
+const paginationEl = document.querySelectorAll('.pagination');
+const buscadorInput = document.querySelector('#buscador');
+let pageSize = Number(pageSizeSelect[0]?.value) || 20;
+let sortColumn = 'id_cargo';
+let sortDirection = 'desc';
+let textoBusqueda = '';
+
+function getFilteredCargos() {
+    if (!textoBusqueda) return cargos;
+
+    const q = textoBusqueda.toLowerCase();
+    return cargos.filter(c =>
+        String(c.id_cargo).includes(q) ||
+        String(c.id_renta).includes(q) ||
+        String(c.id_falla).includes(q) ||
+        (c.descripcion ?? '').toLowerCase().includes(q)
+    );
+}
+
+function getSortedCargos() {
+    const columnasNumericas = ['id_cargo', 'id_renta', 'monto_total', 'monto_seguro', 'monto_cliente', 'monto_devuelto', 'monto_extra_pagado'];
+    const base = getFilteredCargos();
+
+    return [...base].sort((a, b) => {
+        let valA = a[sortColumn];
+        let valB = b[sortColumn];
+
+        if (columnasNumericas.includes(sortColumn)) {
+            valA = Number(valA);
+            valB = Number(valB);
+        } else {
+            valA = String(valA ?? '').toLowerCase();
+            valB = String(valB ?? '').toLowerCase();
+        }
+
+        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+function updateSortIcons() {
+    document.querySelectorAll('th[data-sort]').forEach(th => {
+        const icon = th.querySelector('.sortIcon');
+        icon.textContent = th.dataset.sort === sortColumn
+            ? (sortDirection === 'asc' ? '▲' : '▼')
+            : '';
+    });
+}
+
+function renderTable() {
+    const sorted = getSortedCargos();
+    const totalItems = sorted.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const start = (currentPage - 1) * pageSize;
+    const pageItems = sorted.slice(start, start + pageSize);
+
+    renderCargo(pageItems);
+    renderPagination(totalItems, currentPage, pageSize);
+    updateSortIcons();
+}
 
 async function cargarCargos() {
     const res = await fetch("../php/cargo_adicional.php", {
@@ -12,7 +81,10 @@ async function cargarCargos() {
         body: JSON.stringify({ action: "getAll" })
     });
     const json = await res.json();
-    if (json.status === "success") renderCargo(json.data);
+    if (json.status === "success") {
+        cargos = json.data;
+        renderTable();
+    }
 }
 
 async function cargarDatosRelacionales() {
@@ -101,6 +173,45 @@ function wireEvents() {
         }
     });
 }
+
+document.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            const col = th.dataset.sort;
+            if (sortColumn === col) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = col;
+                sortDirection = 'asc';
+            }
+            currentPage = 1;
+            renderTable();
+        });
+    });
+
+    pageSizeSelect.forEach(select => {
+        select.addEventListener('change', (e) => {
+            pageSize = Number(e.target.value);
+            currentPage = 1;
+            pageSizeSelect.forEach(s => s.value = pageSize);
+            renderTable();
+        });
+    });
+
+    paginationEl.forEach(el => {
+        el.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-page]');
+            if (!btn || btn.disabled) return;
+            currentPage = Number(btn.dataset.page);
+            renderTable();
+        });
+    });
+
+    buscadorInput.addEventListener('input', (e) => {
+        textoBusqueda = e.target.value.trim();
+        currentPage = 1;
+        renderTable();
+    });
+
 
 async function editarCargo(id) {
     const res = await fetch("../php/cargo_adicional.php", {
