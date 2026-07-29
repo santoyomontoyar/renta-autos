@@ -13,21 +13,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnCancelarAgregar = document.getElementById("btnCancelarAgregar");
     const form = document.getElementById("formSeguro");
     const tbody = document.getElementById("tbody");
+    const ordenSeguro = document.getElementById("ordenSeguro"); // <-- NUEVO: referencia al select
 
     btnAgregar.addEventListener("click", abrirFormularioAgregar);
     btnCancelarAgregar.addEventListener("click", cerrarFormulario);
     form.addEventListener("submit", guardarSeguro);
     tbody.addEventListener("click", manejarAccionesTabla);
 
+
+    ordenSeguro.addEventListener("change", () => {        // <-- NUEVO: listener del select
+        const [ordenarPor, direccion] = ordenSeguro.value.split("-");
+        cargarSeguros(ordenarPor, direccion);
+    });
+
     cargarSeguros();
     mostrarVistaTabla();
 });
 
-async function cargarSeguros() {
+async function cargarSeguros(ordenarPor = "id_seguro", direccion = "ASC") {
     const tbody = document.getElementById("tbody");
 
     try {
-        const json = await getAllSeguros();
+        const json = await getAllSeguros(ordenarPor, direccion);
 
     if (json.status === "success" && Array.isArray(json.data) && json.data.length > 0) {
             tbody.innerHTML = json.data.map(d => `

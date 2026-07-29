@@ -281,8 +281,17 @@ function deleteTipoSeguro($id){
     return $stmt->execute();
 }
 
-function getAllSeguros() {
+function getAllSeguros($ordenarPor = 'id_seguro', $direccion = 'ASC') {
     global $db;
+
+    $columnasPermitidas = [
+        'id_seguro'    => 's.id_seguro',
+        'tipo_seguro'  => 'ts.nombre',
+        'costo_diario' => 's.costo_diario'
+    ];
+
+    $columna = $columnasPermitidas[$ordenarPor] ?? 's.id_seguro';
+    $direccion = strtoupper($direccion) === 'DESC' ? 'DESC' : 'ASC';
 
     $stmt = $db->prepare("
         SELECT 
@@ -292,11 +301,13 @@ function getAllSeguros() {
         FROM seguro s
         INNER JOIN tipo_seguro ts 
             ON s.id_tipo_seguro = ts.id_tipo_seguro
+        ORDER BY $columna $direccion
     ");
 
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 function insertSeguro($datos) {
     global $db;
     $id_tipo_seguro = $datos["id_tipo_seguro"] ?? 0;

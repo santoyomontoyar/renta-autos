@@ -1,9 +1,9 @@
-export async function getAllSeguros() {
+export async function getAllSeguros(ordenarPor = "id_seguro", direccion = "ASC") {
     try {
         const res = await fetch("../php/seguro.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "getAll" })
+            body: JSON.stringify({ action: "getAll", ordenarPor, direccion })
         });
 
         return await res.json();
