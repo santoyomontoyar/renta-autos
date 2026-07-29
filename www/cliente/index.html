@@ -14,12 +14,10 @@
     <script src="../js/navbar.js"></script>
 
     <div id="tableList">
-        <!-- CONTROLES DE ORDENAMIENTO -->
         <div class="flex flex-wrap items-center justify-between gap-4 mb-6 mt-4 bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm">
             <button id="addBtn" class="btn btn-primary">+ Agregar Cliente</button>
 
             <div class="flex flex-wrap items-center gap-3">
-                <!-- Criterio Principal de Ordenamiento -->
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Ordenar por:</span>
                     <select id="orderBySelect" class="select select-bordered select-sm bg-white">
@@ -29,7 +27,6 @@
                     </select>
                 </div>
 
-                <!-- Modificador de Dirección o Prioridad -->
                 <div class="flex items-center gap-2" id="dirContainer">
                     <select id="orderDirSelect" class="select select-bordered select-sm bg-white">
                         <option value="ASC">Ascendente (1-9 / A-Z)</option>
@@ -37,7 +34,6 @@
                     </select>
                 </div>
 
-                <!-- Selector Específico para Prioridad de Estado (Oculto por defecto, se activa solo si se selecciona Estado) -->
                 <div class="flex items-center gap-2 hidden" id="estadoGroupContainer">
                     <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Prioridad:</span>
                     <select id="estadoPrioritySelect" class="select select-bordered select-sm bg-white">
@@ -49,7 +45,6 @@
             </div>
         </div>
 
-        <!-- Tabla -->
         <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
             <table class="table table-zebra w-full" id="tablaClientes">
                 <thead>
@@ -66,7 +61,7 @@
             </table>
         </div>
 
-        <!-- PAGINADOR ABAJO DE TODO -->
+       
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t border-gray-200">
             <span id="pageInfo" class="text-sm text-gray-600 font-medium">Cargando registros...</span>
             <div class="join" id="paginationControls"></div>

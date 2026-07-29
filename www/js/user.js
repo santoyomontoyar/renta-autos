@@ -25,7 +25,6 @@ async function cargarRoles(selectEl) {
     }
 }
 
-// Cargar listado con paginación y ordenamiento
 async function cargarUsuarios() {
     if (!tbody) return;
 
@@ -84,7 +83,6 @@ function renderPagination(p) {
 if (tbody) {
     cargarUsuarios();
 
-    // Eventos de Filtro y Ordenamiento
     document.querySelector("#orderBySelect").addEventListener("change", (e) => {
         currentOrderBy = e.target.value;
         currentPage = 1;
@@ -115,7 +113,6 @@ if (tbody) {
         cargarUsuarios();
     });
 
-    // Eliminar usuario
     tbody.addEventListener("click", function (evento) {
         if (!evento.target.matches(".btn-error")) return;
         evento.preventDefault();
@@ -143,7 +140,6 @@ if (tbody) {
         });
     });
 
-    // Paginación
     const paginationControls = document.querySelector("#paginationControls");
     if (paginationControls) {
         paginationControls.addEventListener("click", (e) => {
@@ -165,7 +161,6 @@ if (tbody) {
     }
 }
 
-// Insertar
 if (btnGuardar) {
     const Nombre = document.querySelector("#Nombre");
     const Apellido = document.querySelector("#Apellido");
@@ -201,7 +196,6 @@ if (btnGuardar) {
     }
 }
 
-// Editar
 if (btnActualizar) {
     const Nombre = document.querySelector("#Nombre");
     const Apellido = document.querySelector("#Apellido");

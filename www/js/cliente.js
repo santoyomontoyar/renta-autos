@@ -82,7 +82,6 @@ function wireEvents() {
         if (e.target.id === "saveBtn") guardarCliente();
     });
 
-    // Control dinámico de la interfaz
     document.querySelector("#orderBySelect").addEventListener("change", (e) => {
         currentOrderBy = e.target.value;
         currentPage = 1;

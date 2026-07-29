@@ -18,7 +18,6 @@ switch ($action) {
             $totalRows = (int)$db->query("SELECT COUNT(*) FROM documento_cliente")->fetchColumn();
             $totalPages = (int)ceil($totalRows / $limit);
 
-            // Criterios de ordenación
             $orderByParam = $_post['order_by'] ?? 'd.id_documento';
             $orderDirParam = (strtoupper($_post['order_dir'] ?? '') === 'DESC') ? 'DESC' : 'ASC';
             $tipoPrioridad = $_post['tipo_prioridad'] ?? 'INE_PRIMERO';
@@ -26,7 +25,7 @@ switch ($action) {
             if ($orderByParam === 'tipo_prioridad') {
                 if ($tipoPrioridad === 'LICENCIA_PRIMERO') {
                     $orderClause = "ORDER BY CASE d.tipo_documento WHEN 'Licencia_Conducir' THEN 1 ELSE 2 END ASC, d.id_documento ASC";
-                } else { // INE_PRIMERO
+                } else { 
                     $orderClause = "ORDER BY CASE d.tipo_documento WHEN 'INE' THEN 1 ELSE 2 END ASC, d.id_documento ASC";
                 }
             } elseif (in_array($orderByParam, array('u.nombre', 'd.numero_documento', 'd.fecha_vencimiento'))) {
