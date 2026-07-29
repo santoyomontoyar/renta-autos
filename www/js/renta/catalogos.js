@@ -119,7 +119,7 @@ export function hayConflictoReserva(reservas, id_vehiculo, fechaInicio, fechaFin
 
         const rInicio = new Date(r.fecha_inicio);
         const rFin = new Date(r.fecha_fin);
-        return inicio < rFin && rInicio < fin; // se traslapan
+        return inicio < rFin && rInicio < fin; 
     });
 }
 export function clienteTieneRentaActiva(reservas, id_cliente, excluirIdRenta) {

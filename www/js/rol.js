@@ -14,9 +14,59 @@ const name = document.querySelector('#name');
 const btnGuardar = document.querySelector('#btnGuardar');
 
 let roles = await getRoles();
-renderRoles(roles);
-
 let idEditar = null;
+
+let sortColumn = 'id_rol';
+let sortDirection = 'asc';
+
+function getSortedRoles() {
+    return [...roles].sort((a, b) => {
+        let valA = a[sortColumn];
+        let valB = b[sortColumn];
+
+        if (sortColumn === 'id_rol') {
+            valA = Number(valA);
+            valB = Number(valB);
+        } else {
+            valA = String(valA).toLowerCase();
+            valB = String(valB).toLowerCase();
+        }
+
+        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+function updateSortIcons() {
+    document.querySelectorAll('th[data-sort]').forEach(th => {
+        const icon = th.querySelector('.sortIcon');
+        icon.textContent = th.dataset.sort === sortColumn
+            ? (sortDirection === 'asc' ? '▲' : '▼')
+            : '';
+    });
+}
+
+function renderTable() {
+    const sorted = getSortedRoles();
+    renderRoles(sorted);
+    updateSortIcons();
+}
+
+renderTable();
+
+document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+        const col = th.dataset.sort;
+        if (sortColumn === col) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            sortColumn = col;
+            sortDirection = 'asc';
+        }
+        renderTable();
+    });
+});
 
 listBtn.addEventListener('click', function () {
     views();
