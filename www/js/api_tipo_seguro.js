@@ -1,10 +1,9 @@
-
-export async function getAllTipoSeguro() {
+export async function getAllTipoSeguro(ordenarPor = "id_tipo_seguro", direccion = "ASC") {
     try {
         const res = await fetch("../php/tipo_seguro.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "getAll" })
+            body: JSON.stringify({ action: "getAll", ordenarPor, direccion })
         });
 
         return await res.json();

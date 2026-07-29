@@ -214,12 +214,22 @@ function getAllRentas() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function getAllTipoSeguro() {
+function getAllTipoSeguro($ordenarPor = 'id_tipo_seguro', $direccion = 'ASC') {
     global $db;
+
+    $columnasPermitidas = [
+        'id_tipo_seguro' => 'id_tipo_seguro',
+        'nombre'         => 'nombre',
+        'descripcion'    => 'descripcion'
+    ];
+
+    $columna = $columnasPermitidas[$ordenarPor] ?? 'id_tipo_seguro';
+    $direccion = strtoupper($direccion) === 'DESC' ? 'DESC' : 'ASC';
 
     $stmt = $db->prepare("
         SELECT id_tipo_seguro, nombre, descripcion
         FROM tipo_seguro
+        ORDER BY $columna $direccion
     ");
     $stmt->execute();
 

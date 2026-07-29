@@ -24,6 +24,19 @@
             </button>
         </div>
 
+        <div class="flex items-center justify-end gap-2 px-4 pb-2">
+    <label for="ordenTipoSeguro" class="text-sm font-medium text-gray-600">Ordenar por:</label>
+    <select id="ordenTipoSeguro" class="select select-bordered select-sm">
+        <option value="id_tipo_seguro-ASC">ID (ascendente)</option>
+        <option value="id_tipo_seguro-DESC">ID (descendente)</option>
+        <option value="nombre-ASC">Nombre (A-Z)</option>
+        <option value="nombre-DESC">Nombre (Z-A)</option>
+        <option value="descripcion-ASC">Descripción (A-Z)</option>
+        <option value="descripcion-DESC">Descripción (Z-A)</option>
+    </select>
+</div>
+
+
         <section id="tableSection" class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <div class="overflow-x-auto">
                 <table class="table table-zebra w-full" id="tablaTipoSeguro">

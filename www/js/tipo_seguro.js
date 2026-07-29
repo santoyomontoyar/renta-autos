@@ -11,21 +11,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnCancelarAgregar = document.getElementById("btnCancelarAgregar");
     const form = document.getElementById("formTipoSeguro");
     const tbody = document.getElementById("tbody");
+    const ordenTipoSeguro = document.getElementById("ordenTipoSeguro");
 
     btnAgregar.addEventListener("click", abrirFormularioAgregar);
     btnCancelarAgregar.addEventListener("click", cerrarFormulario);
     form.addEventListener("submit", guardarTipoSeguro);
     tbody.addEventListener("click", manejarAccionesTabla);
 
+    ordenTipoSeguro.addEventListener("change", () => {   // <-- NUEVO
+        const [ordenarPor, direccion] = ordenTipoSeguro.value.split("-");
+        cargarTiposSeguro(ordenarPor, direccion);
+    });
+
     cargarTiposSeguro();
     mostrarVistaTabla();
 });
 
-async function cargarTiposSeguro() {
+async function cargarTiposSeguro(ordenarPor = "id_tipo_seguro", direccion = "ASC") {
     const tbody = document.getElementById("tbody");
 
     try {
-        const json = await getAllTipoSeguro();
+        const json = await getAllTipoSeguro(ordenarPor, direccion);
 
         if (json.status === "success" && Array.isArray(json.data) && json.data.length > 0) {
             tbody.innerHTML = json.data.map(d => `
