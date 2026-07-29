@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: application/json; charset=utf-8');
 require_once 'lib/functions.php';
 
 $_post = json_decode(file_get_contents('php://input'), true);
@@ -8,23 +9,85 @@ global $db;
 
 switch ($action) {
     case 'getAll':
-        $data = getAllClientes();
-        echo json_encode(['status' => 'success', 'data' => $data]);
+        try {
+            $page = isset($_post['page']) ? (int)$_post['page'] : 1;
+            $limit = 50; 
+            if ($page < 1) $page = 1;
+            $offset = ($page - 1) * $limit;
+
+            // Total REAL sin filtrados
+            $totalRows = (int)$db->query("SELECT COUNT(*) FROM cliente")->fetchColumn();
+            $totalPages = (int)ceil($totalRows / $limit);
+
+            // Determinar ordenamiento
+            $orderByParam = $_post['order_by'] ?? 'c.id_cliente';
+            $orderDirParam = (strtoupper($_post['order_dir'] ?? '') === 'DESC') ? 'DESC' : 'ASC';
+            $estadoPrioridad = $_post['estado_prioridad'] ?? 'ACTIVO_PRIMERO';
+
+            if ($orderByParam === 'estado_prioridad') {
+                // Generamos un orden jerárquico por estado usando CASE SQL
+                if ($estadoPrioridad === 'INACTIVO_PRIMERO') {
+                    $orderClause = "ORDER BY CASE u.estado WHEN 'Inactivo' THEN 1 WHEN 'Suspendido' THEN 2 ELSE 3 END ASC, c.id_cliente ASC";
+                } elseif ($estadoPrioridad === 'SUSPENDIDO_PRIMERO') {
+                    $orderClause = "ORDER BY CASE u.estado WHEN 'Suspendido' THEN 1 WHEN 'Activo' THEN 2 ELSE 3 END ASC, c.id_cliente ASC";
+                } else { // ACTIVO_PRIMERO
+                    $orderClause = "ORDER BY CASE u.estado WHEN 'Activo' THEN 1 WHEN 'Inactivo' THEN 2 ELSE 3 END ASC, c.id_cliente ASC";
+                }
+            } elseif ($orderByParam === 'u.nombre') {
+                $orderClause = "ORDER BY u.nombre $orderDirParam, c.id_cliente ASC";
+            } else {
+                $orderClause = "ORDER BY c.id_cliente $orderDirParam";
+            }
+
+            // Consulta paginada trayendo TODOS los clientes organizados por el criterio
+            $sql = "SELECT 
+                        c.id_cliente, 
+                        c.id_usuario, 
+                        u.nombre, 
+                        u.apellido, 
+                        u.correo, 
+                        u.telefono, 
+                        u.estado 
+                    FROM cliente c 
+                    INNER JOIN usuario u ON c.id_usuario = u.id_usuario 
+                    $orderClause 
+                    LIMIT $limit OFFSET $offset";
+
+            $stmt = $db->query($sql);
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode(array(
+                'status' => 'success',
+                'data' => $data,
+                'pagination' => array(
+                    'page' => $page,
+                    'limit' => $limit,
+                    'totalRows' => $totalRows,
+                    'totalPages' => $totalPages
+                )
+            ));
+        } catch (Exception $e) {
+            echo json_encode(array('status' => 'error', 'message' => 'Error SQL: ' . $e->getMessage()));
+        }
         break;
 
     case 'getOne':
-        $stmt = $db->prepare("SELECT c.id_cliente, c.id_usuario, u.nombre, u.apellido, u.correo, u.telefono, u.estado 
-                              FROM cliente c 
-                              INNER JOIN usuario u ON c.id_usuario = u.id_usuario 
-                              WHERE c.id_cliente = :id");
-        $stmt->execute([':id' => $_post['id_cliente']]);
-        $data = $stmt->fetch(PDO::FETCH_ASSOC);
-        echo json_encode(['status' => 'success', 'data' => $data]);
+        try {
+            $stmt = $db->prepare("SELECT c.id_cliente, c.id_usuario, u.nombre, u.apellido, u.correo, u.telefono, u.estado 
+                                  FROM cliente c 
+                                  INNER JOIN usuario u ON c.id_usuario = u.id_usuario 
+                                  WHERE c.id_cliente = :id");
+            $stmt->execute(array(':id' => $_post['id_cliente']));
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            echo json_encode(array('status' => 'success', 'data' => $data));
+        } catch (Exception $e) {
+            echo json_encode(array('status' => 'error', 'message' => $e->getMessage()));
+        }
         break;
 
-    case "delete_cliente":
+    case 'delete_cliente':
         $ok = deleteCliente($_post['id_cliente']);
-        echo json_encode(["status" => $ok ? "success" : "error", "message" => $ok ? "Cliente eliminado" : "No se pudo eliminar"]);
+        echo json_encode(array("status" => $ok ? "success" : "error", "message" => $ok ? "Cliente eliminado" : "No se pudo eliminar"));
         break;
     
     case 'insert':
@@ -33,24 +96,24 @@ switch ($action) {
 
             $stmtUser = $db->prepare("INSERT INTO usuario (nombre, apellido, telefono, correo, password, estado, id_rol) 
                                       VALUES (:nombre, :apellido, :telefono, :correo, '', :estado, 2)");
-            $stmtUser->execute([
+            $stmtUser->execute(array(
                 ':nombre'   => $_post['nombre'],
                 ':apellido' => $_post['apellido'],
                 ':telefono' => $_post['telefono'],
                 ':correo'   => $_post['correo'],
                 ':estado'   => $_post['estado']
-            ]);
+            ));
             
             $id_usuario_nuevo = $db->lastInsertId();
 
             $stmtCliente = $db->prepare("INSERT INTO cliente (id_usuario) VALUES (:id_usuario)");
-            $ok = $stmtCliente->execute([':id_usuario' => $id_usuario_nuevo]);
+            $ok = $stmtCliente->execute(array(':id_usuario' => $id_usuario_nuevo));
 
             $db->commit();
-            echo json_encode(["status" => $ok ? "success" : "error"]);
+            echo json_encode(array("status" => "success"));
         } catch (PDOException $e) {
             $db->rollBack();
-            echo json_encode(["status" => "error", "message" => "El correo ya podría estar registrado: " . $e->getMessage()]);
+            echo json_encode(array("status" => "error", "message" => "El correo ya podría estar registrado."));
         }
         break;
 
@@ -58,21 +121,21 @@ switch ($action) {
         try {
             $stmt = $db->prepare("UPDATE usuario SET nombre = :nombre, apellido = :apellido, correo = :correo, 
                                   telefono = :telefono, estado = :estado WHERE id_usuario = :id_usuario");
-            $ok = $stmt->execute([
+            $ok = $stmt->execute(array(
                 ':nombre'     => $_post['nombre'],
                 ':apellido'   => $_post['apellido'],
                 ':correo'     => $_post['correo'],
                 ':telefono'   => $_post['telefono'],
                 ':estado'     => $_post['estado'],
                 ':id_usuario' => $_post['id_usuario']
-            ]);
-            echo json_encode(["status" => $ok ? "success" : "error"]);
+            ));
+            echo json_encode(array("status" => $ok ? "success" : "error"));
         } catch (PDOException $e) {
-            echo json_encode(["status" => "error", "message" => "Error al actualizar los datos del usuario."]);
+            echo json_encode(array("status" => "error", "message" => "Error al actualizar los datos."));
         }
         break;
 
     default:
-        echo json_encode(["status" => "error", "message" => "Acción inválida"]);
+        echo json_encode(array("status" => "error", "message" => "Acción inválida"));
 }
 ?>
