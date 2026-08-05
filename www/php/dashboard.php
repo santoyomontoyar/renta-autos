@@ -10,13 +10,20 @@ switch ($action) {
         echo json_encode([
             'status' => 'success',
             'data' => [
-                'modelos_por_categoria'  => getStatsModelosPorCategoria(),
-                'fallas_por_mes'         => getStatsFallasPorMes(),
-                'fallas_resumen_mes'     => getStatsFallasResumenMes(),
-                'top_mecanicos'          => getStatsTopMecanicos(),
-                'imagenes_por_tipo'      => getStatsImagenesPorTipo(),
-                'fallas_con_evidencia'   => getStatsFallasConEvidencia()
+                'modelos_por_categoria' => getStatsModelosPorCategoria(),
+                'fallas_por_mes'        => getStatsFallasPorMes(),
+                'top_mecanicos'         => getStatsTopMecanicos(),
+                'ventas_resumen_mes'    => getStatsVentasResumenMes(),
+                'ventas_por_dia'        => getStatsVentasPorDia()
             ]
+        ]);
+        break;
+
+    case 'getFallasPorMesFiltro':
+        $mes = $_post['mes'] ?? date('Y-m');
+        echo json_encode([
+            'status' => 'success',
+            'data' => ['total' => getStatsFallasPorMesFiltro($mes)]
         ]);
         break;
 

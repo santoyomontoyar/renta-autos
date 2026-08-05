@@ -18,7 +18,7 @@ button.addEventListener("click", e => {
     .then(json => {
       if (json.status === "success") {
         localStorage.setItem("user", JSON.stringify(json.data))
-        window.location.href = "users"
+        window.location.href = "dashboard"
       } else {
           alert("Credenciales incorrectas.");
         }

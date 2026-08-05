@@ -1,22 +1,40 @@
-// Dashboard con gráficas de ApexCharts, solo con datos de mis módulos:
-// modelo_vehiculo, reporte_falla, imagen_falla, imagen_modelo_vehiculo
-
 async function cargarStats() {
-    const res = await fetch("../php/dashboard.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "getStats" })
-    });
-    const json = await res.json();
-    if (json.status !== "success") return;
+    try {
+        const res = await fetch("../php/dashboard.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "getStats" })
+        });
+        const json = await res.json();
+        if (json.status !== "success") return;
 
-    const s = json.data;
+        const s = json.data;
 
-    renderFallasPorMes(s.fallas_por_mes);
-    renderModelosPorCategoria(s.modelos_por_categoria);
-    renderTopMecanicos(s.top_mecanicos);
-    renderImagenesTipo(s.imagenes_por_tipo);
-    renderFallasEvidencia(s.fallas_con_evidencia);
+        renderFallasPorMes(s.fallas_por_mes);
+        renderModelosPorCategoria(s.modelos_por_categoria);
+        renderTopMecanicos(s.top_mecanicos);
+        renderVentasPorDia(s.ventas_por_dia);
+        renderVentasResumen(s.ventas_resumen_mes);
+    } catch (err) {
+        console.error("Error al cargar estadísticas:", err);
+    }
+}
+
+function renderVentasResumen(datos) {
+    document.querySelector("#kpiVentasEsteMes").textContent = `$${datos.ventas_este_mes.toFixed(2)}`;
+    document.querySelector("#kpiVentasMesPasado").textContent = `$${datos.ventas_mes_pasado.toFixed(2)}`;
+}
+
+function renderVentasPorDia(datos) {
+    new ApexCharts(document.querySelector("#chartVentasPorDia"), {
+        chart: { type: "area", height: 280, toolbar: { show: false } },
+        series: [{ name: "Ventas", data: datos.map(d => d.total) }],
+        xaxis: { categories: datos.map(d => d.dia) },
+        colors: ["#22c55e"],
+        stroke: { curve: "smooth" },
+        dataLabels: { enabled: false },
+        yaxis: { labels: { formatter: v => `$${v.toFixed(0)}` } }
+    }).render();
 }
 
 function renderFallasPorMes(datos) {
@@ -50,25 +68,30 @@ function renderTopMecanicos(datos) {
     }).render();
 }
 
-function renderImagenesTipo(datos) {
-    new ApexCharts(document.querySelector("#chartImagenesTipo"), {
-        chart: { type: "pie", height: 280 },
-        series: [datos.principales, datos.galeria],
-        labels: ["Principal / Portada", "Galería"],
-        colors: ["#22c55e", "#94a3b8"],
-        legend: { position: "bottom" }
-    }).render();
+async function cargarFallasDelMes(mes) {
+    try {
+        const res = await fetch("../php/dashboard.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "getFallasPorMesFiltro", mes })
+        });
+        const json = await res.json();
+        if (json.status !== "success") return;
+
+        document.querySelector("#kpiFallasMes").textContent = json.data.total;
+    } catch (err) {
+        console.error("Error al filtrar fallas por mes:", err);
+    }
 }
 
-function renderFallasEvidencia(datos) {
-    new ApexCharts(document.querySelector("#chartFallasEvidencia"), {
-        chart: { type: "bar", height: 220, toolbar: { show: false } },
-        series: [{ name: "Fallas", data: [datos.con_evidencia, datos.sin_evidencia] }],
-        xaxis: { categories: ["Con foto de evidencia", "Sin foto de evidencia"] },
-        colors: ["#0ea5e9"],
-        plotOptions: { bar: { borderRadius: 6, columnWidth: "40%" } },
-        dataLabels: { enabled: true }
-    }).render();
-}
+document.addEventListener("DOMContentLoaded", () => {
+    const mesFallas = document.querySelector("#mesFallas");
+    mesFallas.value = new Date().toISOString().slice(0, 7); // YYYY-MM, mes actual por defecto
 
-cargarStats();
+    mesFallas.addEventListener("change", () => {
+        cargarFallasDelMes(mesFallas.value);
+    });
+
+    cargarStats();
+    cargarFallasDelMes(mesFallas.value);
+});
