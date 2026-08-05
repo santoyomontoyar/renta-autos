@@ -7,6 +7,7 @@ nav.innerHTML = `
     <div class="flex-none">
         <ul class="menu menu-horizontal px-1 gap-1 items-center">
             <!-- Módulos Principales -->
+            <li><a href="/dashboard">Dashboard</a></li>
             <li><a href="/users">Usuarios</a></li>
             <li><a href="/cliente">Clientes</a></li>
             <li><a href="/documento_cliente">Documentos</a></li>

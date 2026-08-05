@@ -2,70 +2,69 @@ import getFallas, { insertarFalla, actualizarFalla, eliminarFalla } from './fall
 import renderFallas from './falla_renders.js'
 import views, { clearForm } from './falla_views.js'
 import form from './falla_form.js'
-import { ordenarDatos, paginar, renderControlesPaginacion, wireSortableHeaders } from './reporte_falla_paginacion.js'
- 
+import { renderToolbar } from './lib/toolbar.js?v=2'
+import { renderPagination } from './lib/pagination_ui.js?v=2'
+
 const table = document.querySelector('#table');
 const formArea = document.querySelector('#formArea');
-const addForm = document.querySelector('#addForm');
 const listBtn = document.querySelector('#listBtn');
- 
+
 formArea.innerHTML = form();
- 
+
 const id_renta = document.querySelector('#id_renta');
 const id_usuario = document.querySelector('#id_usuario');
 const descripcion = document.querySelector('#descripcion');
 const btnGuardar = document.querySelector('#btnGuardar');
 
-const POR_PAGINA = 50;
-let fallas = await getFallas();
-let paginaActual = 1;
-let campoOrden = null;
-let direccionOrden = 'asc';
+const CAMPOS_ORDEN = [
+    { value: "id_falla", label: "ID" },
+    { value: "id_renta", label: "# Renta" },
+    { value: "mecanico", label: "Mecánico" },
+    { value: "fecha_reporte", label: "Fecha" }
+];
 
-function renderTabla() {
-    let datos = [...fallas];
+let estado = { page: 1, orderBy: "id_falla", orderDir: "ASC", buscar: "" };
+let idEditar = null;
 
-    if (campoOrden) {
-        datos = ordenarDatos(datos, campoOrden, direccionOrden);
+async function cargarTabla() {
+    const tbody = document.querySelector('#tbody');
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400">Cargando registros...</td></tr>`;
+
+    const json = await getFallas(estado);
+
+    if (json.status !== 'success') {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 py-4">Error al cargar las fallas.</td></tr>`;
+        return;
     }
 
-    const totalPag = Math.max(1, Math.ceil(datos.length / POR_PAGINA));
-    if (paginaActual > totalPag) paginaActual = totalPag;
-
-    const datosPagina = paginar(datos, paginaActual, POR_PAGINA);
-    renderFallas(datosPagina);
-
-    renderControlesPaginacion('paginacionFallas', paginaActual, datos.length, POR_PAGINA, (nuevaPagina) => {
-        paginaActual = nuevaPagina;
-        renderTabla();
+    renderFallas(json.data);
+    renderPagination('paginacionFallas', json.pagination, 'fallas', (pagina) => {
+        estado.page = pagina;
+        cargarTabla();
     });
 }
 
-wireSortableHeaders('#table thead', (campo, direccion) => {
-    campoOrden = campo;
-    direccionOrden = direccion;
-    paginaActual = 1;
-    renderTabla();
+renderToolbar('toolbar', CAMPOS_ORDEN, {
+    placeholderBusqueda: 'Buscar por mecánico o descripción...',
+    boton: { label: '+ Agregar', onClick: () => { views(); clearForm(); idEditar = null; } },
+    onChange: ({ buscar, orderBy, orderDir }) => {
+        estado = { ...estado, buscar, orderBy, orderDir, page: 1 };
+        cargarTabla();
+    }
 });
 
-renderTabla();
-
-let idEditar = null;
+cargarTabla();
 
 listBtn.addEventListener('click', function () {
     views();
 });
 
-addForm.addEventListener('click', function () {
-    views();
-    clearForm();
-    idEditar = null;
-});
-
-table.addEventListener('click', function (e) {
+table.addEventListener('click', async function (e) {
     if (e.target.classList.contains('editBtn')) {
         const id = e.target.dataset.id;
-        const falla = fallas.find(f => f.id_falla == id);
+        const json = await getFallas(estado);
+        const falla = json.data.find(f => f.id_falla == id);
+        if (!falla) return;
 
         idEditar = id;
         id_renta.value = falla.id_renta;
@@ -77,7 +76,6 @@ table.addEventListener('click', function (e) {
     if (e.target.classList.contains('deleteBtn')) {
         const id = e.target.dataset.id;
 
-    
         Swal.fire({
             title: "¿Estás seguro de eliminar este registro?",
             text: "No vas a poder revertir esto!",
@@ -89,31 +87,31 @@ table.addEventListener('click', function (e) {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 const json = await eliminarFalla(id);
-        const response = json.status === 'success'
+                const response = json.status === 'success'
                     ? { title: 'Borrado', text: 'El registro ha sido borrado', icon: 'success' }
                     : { title: 'Error', text: json.message, icon: 'error' };
- 
-                Swal.fire(response).then(async () => {
-                    fallas = await getFallas();
-                    renderFallas(fallas);
+
+                Swal.fire(response).then(() => {
+                    estado.page = 1;
+                    cargarTabla();
                 });
             }
         });
     }
 });
- 
+
 btnGuardar.addEventListener('click', async function (e) {
     e.preventDefault();
- 
+
     const renta = id_renta.value.trim();
     const usuario = id_usuario.value.trim();
     const desc = descripcion.value.trim();
     if (!renta || !usuario || !desc) return;
- 
+
     const json = idEditar
         ? await actualizarFalla(idEditar, renta, usuario, desc)
         : await insertarFalla(renta, usuario, desc);
- 
+
     if (json.status === 'success') {
         await Swal.fire({
             title: 'Guardado',
@@ -123,9 +121,8 @@ btnGuardar.addEventListener('click', async function (e) {
         idEditar = null;
         clearForm();
         views();
-        fallas = await getFallas();
-        renderFallas(fallas);
+        cargarTabla();
     } else {
         Swal.fire({ title: 'Error', text: json.message || 'No se pudo guardar', icon: 'error' });
     }
-});        
+});

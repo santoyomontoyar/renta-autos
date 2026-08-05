@@ -9,9 +9,14 @@ async function post(payload) {
     return res.json();
 }
  
-export default async function getFallas() {
-    const json = await post({ action: "getAll" });
-    return json.data;
+export default async function getFallas({ page = 1, orderBy = "id_falla", orderDir = "ASC", buscar = "" } = {}) {
+    return post({
+        action: "getAll",
+        page,
+        order_by: orderBy,
+        order_dir: orderDir,
+        buscar
+    });
 }
  
 export async function insertarFalla(id_renta, id_usuario, descripcion) {

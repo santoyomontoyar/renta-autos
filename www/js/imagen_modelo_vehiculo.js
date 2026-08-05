@@ -2,91 +2,61 @@ import form from './imagen_modelo_vehiculo/form.js';
 import renderImagen from './imagen_modelo_vehiculo/renders.js';
 import views, { clearForm } from './imagen_modelo_vehiculo/views.js';
 
-import {
-    ordenarDatos,
-    paginar,
-    renderControlesPaginacion,
-    wireSortableHeaders
-} from './imagen_modelo_vehiculo_paginacion.js';
+import { renderToolbar } from './lib/toolbar.js?v=2';
+import { renderPagination } from './lib/pagination_ui.js?v=2';
+
+const CAMPOS_ORDEN = [
+    { value: "id_imagen", label: "ID" },
+    { value: "marca", label: "Modelo (marca)" },
+    { value: "es_principal", label: "Tipo de foto" }
+];
 
 let modelos = [];
-let imagenesData = [];
+let estado = { page: 1, orderBy: "id_imagen", orderDir: "ASC", buscar: "" };
 
-const POR_PAGINA = 50;
-let paginaActual = 1;
-let campoOrden = null;
-let direccionOrden = "asc";
-
-async function cargarImagenes() {
+async function post(action, extra = {}) {
     const res = await fetch("../php/imagen_modelo_vehiculo.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "getAll" })
+        body: JSON.stringify({ action, ...extra })
     });
-
-    const json = await res.json();
-
-    imagenesData =
-        (json.status === "success" && Array.isArray(json.data))
-            ? json.data
-            : [];
-
-    renderTabla();
+    return res.json();
 }
 
-function renderTabla() {
+async function cargarImagenes() {
+    const tbody = document.querySelector("#tbody");
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400">Cargando registros...</td></tr>`;
 
-    let datos = [...imagenesData];
+    const json = await post("getAll", {
+        page: estado.page,
+        order_by: estado.orderBy,
+        order_dir: estado.orderDir,
+        buscar: estado.buscar
+    });
 
-    if (campoOrden) {
-        datos = ordenarDatos(datos, campoOrden, direccionOrden);
+    if (json.status !== "success") {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 py-4">Error al cargar las imágenes.</td></tr>`;
+        return;
     }
 
-    const totalPag = Math.max(
-        1,
-        Math.ceil(datos.length / POR_PAGINA)
-    );
-
-    if (paginaActual > totalPag) {
-        paginaActual = totalPag;
-    }
-
-    const datosPagina = paginar(
-        datos,
-        paginaActual,
-        POR_PAGINA
-    );
-
-    renderImagen(datosPagina);
-
-    renderControlesPaginacion(
-        "paginacionImagenModelo",
-        paginaActual,
-        datos.length,
-        POR_PAGINA,
-        (nuevaPagina) => {
-            paginaActual = nuevaPagina;
-            renderTabla();
-        }
-    );
+    renderImagen(json.data);
+    renderPagination("paginacionImagenModelo", json.pagination, "imágenes", (pagina) => {
+        estado.page = pagina;
+        cargarImagenes();
+    });
 }
 
 async function cargarModelos() {
     const res = await fetch("../php/modelo_vehiculo.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "getAll" })
+        body: JSON.stringify({ action: "getAllForSelect" })
     });
     const json = await res.json();
     if (json.status === "success") modelos = json.data;
 }
 
 function wireEvents() {
-    document.querySelector("#addBtn").addEventListener("click", () => {
-        clearForm();
-        views();
-    });
-
     document.querySelector("#tablaImagenes").addEventListener("click", (e) => {
         const id = e.target.dataset.id;
         if (e.target.classList.contains("editBtn")) editarImagen(id);
@@ -98,13 +68,14 @@ function wireEvents() {
         if (e.target.id === "saveBtn") guardarImagen();
     });
 
-    wireSortableHeaders("#tablaImagenes thead", (campo, direccion) => {
-    campoOrden = campo;
-    direccionOrden = direccion;
-    paginaActual = 1;
-    renderTabla();
+    renderToolbar("toolbar", CAMPOS_ORDEN, {
+        placeholderBusqueda: "Buscar por marca o modelo...",
+        boton: { label: "+ Agregar Imagen", onClick: () => { clearForm(); views(); } },
+        onChange: ({ buscar, orderBy, orderDir }) => {
+            estado = { ...estado, buscar, orderBy, orderDir, page: 1 };
+            cargarImagenes();
+        }
     });
-
 }
 
 async function editarImagen(id) {
@@ -116,7 +87,7 @@ async function editarImagen(id) {
     const json = await res.json();
     if (json.status === "success") {
         const img = json.data;
-        
+
         clearForm();
         views();
 
@@ -129,7 +100,7 @@ async function editarImagen(id) {
 
 async function guardarImagen() {
     const id_imagen = document.querySelector("#id_imagen").value;
-    
+
     const datos = {
         id_modelo: document.querySelector("#id_modelo").value,
         url_archivo: document.querySelector("#url_archivo").value.trim(),
@@ -181,6 +152,7 @@ async function eliminarImagen(id) {
 
     if (json.status === "success") {
         Swal.fire("Eliminada", "La imagen fue borrada de la base de datos.", "success");
+        estado.page = 1;
         cargarImagenes();
     } else {
         Swal.fire("Error", "No se pudo eliminar la imagen.", "error");
@@ -189,7 +161,7 @@ async function eliminarImagen(id) {
 
 (async function init() {
     await cargarModelos();
-    await cargarImagenes();
     document.querySelector("#formContainer").innerHTML = form(modelos);
     wireEvents();
+    await cargarImagenes();
 })();

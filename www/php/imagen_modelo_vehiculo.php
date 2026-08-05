@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: application/json; charset=utf-8');
 require_once 'lib/functions.php';
 
 $_post = json_decode(file_get_contents('php://input'), true);
@@ -8,14 +9,17 @@ global $db;
 
 switch ($action) {
     case 'getAll':
-        $stmt = $db->prepare("SELECT img.id_imagen, img.id_modelo, img.url_archivo, img.es_principal, 
-                                     m.marca, m.nombre_modelo, m.year 
-                              FROM imagen_modelo_vehiculo img 
-                              INNER JOIN modelo_vehiculo m ON img.id_modelo = m.id_modelo 
-                              ORDER BY img.id_imagen DESC");
-        $stmt->execute();
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode(['status' => 'success', 'data' => $data]);
+        $page     = $_post['page'] ?? 1;
+        $orderBy  = $_post['order_by'] ?? 'id_imagen';
+        $orderDir = $_post['order_dir'] ?? 'ASC';
+        $buscar   = $_post['buscar'] ?? '';
+
+        $resultado = getImagenesModeloPaginado($page, $orderBy, $orderDir, $buscar);
+        echo json_encode([
+            'status' => 'success',
+            'data' => $resultado['data'],
+            'pagination' => $resultado['pagination']
+        ]);
         break;
 
     case 'getOne':
@@ -27,7 +31,7 @@ switch ($action) {
 
     case 'insert':
         try {
-            $stmt = $db->prepare("INSERT INTO imagen_modelo_vehiculo (id_modelo, url_archivo, es_principal) 
+            $stmt = $db->prepare("INSERT INTO imagen_modelo_vehiculo (id_modelo, url_archivo, es_principal)
                                   VALUES (:id_modelo, :url_archivo, :es_principal)");
             $ok = $stmt->execute([
                 ':id_modelo'    => $_post['id_modelo'],
@@ -42,10 +46,10 @@ switch ($action) {
 
     case 'update':
         try {
-            $stmt = $db->prepare("UPDATE imagen_modelo_vehiculo SET 
-                                    id_modelo = :id_modelo, 
-                                    url_archivo = :url_archivo, 
-                                    es_principal = :es_principal 
+            $stmt = $db->prepare("UPDATE imagen_modelo_vehiculo SET
+                                    id_modelo = :id_modelo,
+                                    url_archivo = :url_archivo,
+                                    es_principal = :es_principal
                                   WHERE id_imagen = :id_imagen");
             $ok = $stmt->execute([
                 ':id_modelo'    => $_post['id_modelo'],
@@ -68,4 +72,3 @@ switch ($action) {
     default:
         echo json_encode(['status' => 'error', 'message' => 'Acción inválida']);
 }
-?>
