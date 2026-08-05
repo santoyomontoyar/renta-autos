@@ -10,7 +10,9 @@ $data = "";
 switch ($action) {
 
     case 'getAll':
-        $data = getAllRoles();
+        $sortColumn    = $_post['sortColumn'] ?? 'id_rol';
+        $sortDirection = $_post['sortDirection'] ?? 'ASC';
+        $data = getAllRoles($sortColumn, $sortDirection);
         break;
     case 'insert':
         $data = insertar_rol($_post);

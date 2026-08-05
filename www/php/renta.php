@@ -6,12 +6,18 @@ $action = $_post['action'] ?? '';
 
 switch ($action) {
   case 'getAll':
-    $data = getAllRentas();
-    if ($data) {
-      echo json_encode(['status' => 'success', 'data' => $data]);
-    } else {
-      echo json_encode(['status' => 'error', 'message' => 'Failed to fetch data']);
-    }
+    $page          = $_post['page'] ?? 1;
+    $pageSize      = $_post['pageSize'] ?? 10;
+    $sortColumn    = $_post['sortColumn'] ?? 'id_renta';
+    $sortDirection = $_post['sortDirection'] ?? 'ASC';
+    $search        = $_post['search'] ?? '';
+
+    $result = getAllRentas($page, $pageSize, $sortColumn, $sortDirection, $search);
+    echo json_encode([
+        'status' => 'success',
+        'data'   => $result['data'],
+        'total'  => $result['total']
+    ]);
     exit;
 
   case 'getFormNeeds':

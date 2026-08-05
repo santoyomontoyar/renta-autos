@@ -184,8 +184,51 @@ function deleteVehiculo($id) {
     }
 }
 
-function getAllRentas() {
+function getAllRentas($page = 1, $pageSize = 10, $sortColumn = 'id_renta', $sortDirection = 'ASC', $search = '') {
     global $db;
+       $columnasPermitidas = [
+        'id_renta'         => 'r.id_renta',
+        'cliente'          => 'cliente',
+        'sucursal_origen'  => 'sucursal_origen',
+        'sucursal_destino' => 'sucursal_destino',
+    ];
+
+    $columna    = $columnasPermitidas[$sortColumn] ?? 'r.id_renta';
+    $direccion  = strtoupper($sortDirection) === 'DESC' ? 'DESC' : 'ASC';
+
+    $page     = max(1, (int)$page);
+    $pageSize = max(1, (int)$pageSize);
+    $offset   = ($page - 1) * $pageSize;
+
+    $joins = "
+        FROM renta r
+        JOIN cliente c ON r.id_cliente = c.id_cliente
+        JOIN usuario u ON c.id_usuario = u.id_usuario
+        JOIN vehiculo v ON r.id_vehiculo = v.id_vehiculo
+        JOIN modelo_vehiculo mv ON v.id_modelo = mv.id_modelo
+        JOIN seguro s ON r.id_seguro = s.id_seguro
+        JOIN tipo_seguro ts ON s.id_tipo_seguro = ts.id_tipo_seguro
+        JOIN sucursal so ON r.id_sucursal_origen = so.id_sucursal
+        JOIN sucursal sd ON r.id_sucursal_destino = sd.id_sucursal";
+
+    $whereSql = '';
+    $params = [];
+    if (trim($search) !== '') {
+        $whereSql = "WHERE (
+            CAST(r.id_renta AS CHAR) LIKE :search
+            OR CONCAT(u.nombre, ' ', u.apellido) LIKE :search
+            OR so.nombre LIKE :search
+            OR sd.nombre LIKE :search)";
+        $params[':search'] = '%' . $search . '%';
+    }
+
+    $stmtCount = $db->prepare("SELECT COUNT(*) AS total $joins $whereSql");
+    foreach ($params as $key => $val) {
+        $stmtCount->bindValue($key, $val);
+    }
+    $stmtCount->execute();
+    $total = (int)$stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
+
     $stmt = $db->prepare("
         SELECT 
             r.id_renta,
@@ -200,18 +243,21 @@ function getAllRentas() {
             r.estado_deposito,
             r.precio_cobrado,
             r.estado
-        FROM renta r
-        JOIN cliente c ON r.id_cliente = c.id_cliente
-        JOIN usuario u ON c.id_usuario = u.id_usuario
-        JOIN vehiculo v ON r.id_vehiculo = v.id_vehiculo
-        JOIN modelo_vehiculo mv ON v.id_modelo = mv.id_modelo
-        JOIN seguro s ON r.id_seguro = s.id_seguro
-        JOIN tipo_seguro ts ON s.id_tipo_seguro = ts.id_tipo_seguro
-        JOIN sucursal so ON r.id_sucursal_origen = so.id_sucursal
-        JOIN sucursal sd ON r.id_sucursal_destino = sd.id_sucursal
-    ");
+        $joins
+        $whereSql
+        ORDER BY $columna $direccion
+        LIMIT :limit OFFSET :offset");
+    foreach ($params as $key => $val) {
+        $stmt->bindValue($key, $val);
+    }
+    $stmt->bindValue(':limit', $pageSize, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    return [
+        'data'  => $stmt->fetchAll(PDO::FETCH_ASSOC),
+        'total' => $total
+    ];
 }
 
 function getAllTipoSeguro($ordenarPor = 'id_tipo_seguro', $direccion = 'ASC') {
@@ -406,15 +452,23 @@ function getAllModelos() {
 }
 
 
-function getAllRoles() {
+function getAllRoles($ordenarPor = 'id_rol', $direccion = 'ASC') {
     global $db;
+
+    $columnasPermitidas = [
+        'id_rol' => 'id_rol',
+        'nombre' => 'nombre'
+    ];
+
+    $columna = $columnasPermitidas[$ordenarPor] ?? 'id_rol';
+    $direccion = strtoupper($direccion) === 'DESC' ? 'DESC' : 'ASC';
 
     $stmt = $db->prepare("
         SELECT 
             id_rol,
             nombre
         FROM rol
-    ");
+        ORDER BY $columna $direccion");
 
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -456,6 +510,62 @@ function getAllFallas() {
 
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getAllCargosAdicionales($page = 1, $pageSize = 10, $sortColumn = 'id_cargo', $sortDirection = 'DESC', $search = '') {
+    global $db;
+
+    $columnasPermitidas = [
+        'id_cargo'    => 'id_cargo',
+        'id_renta' => 'id_renta',
+        'fecha_cargo' => 'fecha_cargo'
+    ];
+
+    $columna   = $columnasPermitidas[$sortColumn] ?? 'id_cargo';
+    $direccion = strtoupper($sortDirection) === 'ASC' ? 'ASC' : 'DESC';
+
+    $page     = max(1, (int)$page);
+    $pageSize = max(1, (int)$pageSize);
+    $offset   = ($page - 1) * $pageSize;
+
+    $whereSql = '';
+    $params = [];
+    if (trim($search) !== '') {
+        $whereSql = "WHERE (
+            CAST(id_cargo AS CHAR) LIKE :search
+            OR CAST(id_renta AS CHAR) LIKE :search
+            OR CAST(fecha_cargo AS CHAR) LIKE :search
+            OR descripcion LIKE :search
+        )";
+        $params[':search'] = '%' . $search . '%';
+    }
+
+    $stmtCount = $db->prepare("SELECT COUNT(*) AS total FROM cargo_adicional $whereSql");
+    foreach ($params as $key => $val) {
+        $stmtCount->bindValue($key, $val);
+    }
+    $stmtCount->execute();
+    $total = (int)$stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
+
+    $stmt = $db->prepare("
+        SELECT id_cargo, id_falla, id_renta, descripcion, monto_total, monto_seguro,
+               monto_cliente, monto_devuelto, monto_extra_pagado, fecha_cargo
+        FROM cargo_adicional
+        $whereSql
+        ORDER BY $columna $direccion
+        LIMIT :limit OFFSET :offset
+    ");
+    foreach ($params as $key => $val) {
+        $stmt->bindValue($key, $val);
+    }
+    $stmt->bindValue(':limit', $pageSize, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return [
+        'data'  => $stmt->fetchAll(PDO::FETCH_ASSOC),
+        'total' => $total
+    ];
 }
 
 function insertar_falla($datos) {

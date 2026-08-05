@@ -45,15 +45,26 @@ export function renderPagination(totalItems, currentPage, pageSize) {
 
     const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
-    const html = totalPages <= 1 ? "" : `
-        <button class="btn btn-sm" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>
-            Anterior
-        </button>
-        <span class="mx-2">Página ${currentPage} de ${totalPages}</span>
-        <button class="btn btn-sm" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>
-            Siguiente
-        </button>
-    `;
-
-    paginationEls.forEach(el => el.innerHTML = html);
-}   
+       if (totalPages <= 1) {
+        paginationEls.forEach(el => el.innerHTML = "");
+        return;
+    }
+ 
+    const paginas = [1];
+    if (currentPage - 1 > 2) paginas.push('...');
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) paginas.push(i);
+    if (currentPage + 1 < totalPages - 1) paginas.push('...');
+    if (totalPages > 1) paginas.push(totalPages);
+ 
+    const botones = paginas.map(p => p === '...'
+        ? `<span class="px-2 text-gray-400">...</span>`
+        : `<button class="btn btn-sm ${p === currentPage ? 'btn-primary' : 'btn-ghost'}" data-page="${p}" ${p === currentPage ? 'disabled' : ''}>${p}</button>`
+    ).join('');
+ 
+    paginationEls.forEach(el => el.innerHTML = `
+        <button class="btn btn-sm" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>« Anterior</button>
+        ${botones}
+        <button class="btn btn-sm" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente »</button>
+    `);
+}
+    

@@ -8,13 +8,21 @@ global $db;
 
 switch ($action) {
     case 'getAll':
-        $stmt = $db->prepare("SELECT id_cargo, id_falla, id_renta, descripcion, monto_total, monto_seguro, monto_cliente, monto_devuelto, monto_extra_pagado, fecha_cargo FROM cargo_adicional ORDER BY id_cargo DESC");
-        $stmt->execute();
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode(['status' => 'success', 'data' => $data]);
-        break;
+        $page          = $_post['page'] ?? 1;
+        $pageSize      = $_post['pageSize'] ?? 10;
+        $sortColumn    = $_post['sortColumn'] ?? 'id_cargo';
+        $sortDirection = $_post['sortDirection'] ?? 'DESC';
+        $search        = $_post['search'] ?? '';
 
+        $result = getAllCargosAdicionales($page, $pageSize, $sortColumn, $sortDirection, $search);
+        echo json_encode([
+            'status' => 'success',
+            'data'   => $result['data'],
+            'total'  => $result['total']
+        ]);
+        break;
     case 'getFallas':
+        
         $data = getAllFallas();
         echo json_encode(['status' => 'success', 'data' => $data]);
         break;

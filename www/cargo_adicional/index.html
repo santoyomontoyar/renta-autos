@@ -14,38 +14,41 @@
     <script src="../js/navbar.js"></script>
 
     <div id="tableList">
+        <div class="flex justify-between items-center mb-4 mt-4 flex-wrap gap-3">
         <button id="addBtn" class="btn btn-primary mb-4 mt-4">+ Agregar Cargo</button>
+
            <input
             type="text"
             id="buscador"
             placeholder="Buscar por renta, falla, descripción..."
             class="input input-bordered w-80">
-        <div class="flex items-center gap-4">
+
             <div class="flex items-center gap-2">
-                <span>Mostrar</span>
-                <select class="pageSize select select-bordered select-sm">
-                    <option value="50">50</option>
-                    <option value="100" selected>100</option>
-                    <option value="150">150</option>
-                </select>
-                    <span>registros</span>
-                </div>
-                <div class="pagination flex items-center gap-2"></div>
-            </div>
+            <span class="font-semibold text-sm">ORDENAR POR:</span>
+            <select id="ordenarPor" class="select select-bordered select-sm">
+            <option value="id_cargo">ID</option>
+            <option value="id_renta">Renta</option>
+            <option value="fecha_cargo">Fecha</option>
+            </select>
+            <select id="direccionOrden" class="select select-bordered select-sm">
+              <option value="asc">Ascendente A-Z 1-9</option>
+              <option value="desc">Descendente Z-A 9-1</option>
+          </select>
+        </div>
         </div>
         <div class="overflow-x-auto">
             <table class="table table-zebra w-full" id="tablaCargos">
                 <thead>
                     <tr>
-                        <th data-sort="id_cargo" class="cursor-pointer select-none">ID Cargo <span class="sortIcon"></span></th>
-                        <th data-sort="id_renta" class="cursor-pointer select-none">Renta / Falla <span class="sortIcon"></span></th>
-                        <th data-sort="descripcion" class="cursor-pointer select-none">Descripción <span class="sortIcon"></span></th>
-                        <th data-sort="monto_total" class="cursor-pointer select-none">Monto Total <span class="sortIcon"></span></th>
-                        <th data-sort="monto_seguro" class="cursor-pointer select-none">Monto Seguro <span class="sortIcon"></span></th>
-                        <th data-sort="monto_cliente" class="cursor-pointer select-none">Garantía Tomada <span class="sortIcon"></span></th>
-                        <th data-sort="monto_devuelto" class="cursor-pointer select-none">Devolución Garantía <span class="sortIcon"></span></th>
-                        <th data-sort="monto_extra_pagado" class="cursor-pointer select-none">Pago Extra <span class="sortIcon"></span></th>
-                        <th data-sort="fecha_cargo" class="cursor-pointer select-none">Fecha <span class="sortIcon"></span></th>
+                        <th> ID Cargo </th>
+                        <th> Renta / Falla </th>
+                        <th> Descripción </th>
+                        <th> Monto Total </th>
+                        <th> Monto Seguro </th>
+                        <th> Garantía Tomada </th>
+                        <th> Devolución Garantía </th>
+                        <th> Pago Extra </th>
+                        <th> Fecha </th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -53,9 +56,9 @@
             </table>
         </div>
         <div class="flex justify-end items-center gap-2 mt-4">
-          <div class="pagination flex items-center gap-2"></div>
+           <div class="pagination flex items-center gap-2"></div>
         </div>
-
+  </div>
     <div id="formContainer" class="hidden max-w-md bg-white p-6 shadow-xl rounded-2xl border border-gray-100"></div>
 
     <script type="module" src="../js/cargo_adicional.js"></script>

@@ -15,128 +15,80 @@ if (tbody) {
     const pageSizeSelect = document.querySelectorAll('.pageSize');
     const paginationEl = document.querySelectorAll('.pagination');
     const buscadorInput = document.querySelector('#buscador');
+    const ordenarPorSelect = document.querySelector('#ordenarPor');
+    const direccionSelect = document.querySelector('#direccionOrden');
 
-    let rentas = [];
-    let currentPage = 1;
+  let currentPage = 1;
     let pageSize = Number(pageSizeSelect[0]?.value) || 10;
-    let sortColumn = 'id_renta';
-    let sortDirection = 'asc';
+    let sortColumn = ordenarPorSelect.value;
+    let sortDirection = direccionSelect.value;
     let textoBusqueda = '';
-
-    function getFilteredRentas() {
-        if (!textoBusqueda) return rentas;
-
-        const q = textoBusqueda.toLowerCase();
-        return rentas.filter(r =>
-            String(r.id_renta).includes(q) ||
-            (r.cliente ?? '').toLowerCase().includes(q) ||
-            (r.vehiculo ?? '').toLowerCase().includes(q) ||
-            (r.seguro ?? '').toLowerCase().includes(q) ||
-            (r.sucursal_origen ?? '').toLowerCase().includes(q) ||
-            (r.sucursal_destino ?? '').toLowerCase().includes(q) ||
-            (r.estado ?? '').toLowerCase().includes(q) ||
-            (r.estado_deposito ?? '').toLowerCase().includes(q)
-        );
-    }
-
-    function getSortedRentas() {
-    const columnasNumericas = ['id_renta', 'monto_deposito', 'precio_cobrado'];
-    const base = getFilteredRentas();
-
-    return [...base].sort((a, b) => {
-        let valA = a[sortColumn];
-        let valB = b[sortColumn];
-
-        if (columnasNumericas.includes(sortColumn)) {
-            valA = Number(valA);
-            valB = Number(valB);
-        } else {
-            valA = String(valA ?? '').toLowerCase();
-            valB = String(valB ?? '').toLowerCase();
-        }
-
-        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-    });
-}
-
-    function updateSortIcons() {
-        document.querySelectorAll('th[data-sort]').forEach(th => {
-            const icon = th.querySelector('.sortIcon');
-            icon.textContent = th.dataset.sort === sortColumn
-                ? (sortDirection === 'asc' ? '▲' : '▼')
-                : '';
-        });
-    }
-
-    function renderTable() {
-        const sorted = getSortedRentas();
-        const totalItems = sorted.length;
-        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-
-        if (currentPage > totalPages) currentPage = totalPages;
-        if (currentPage < 1) currentPage = 1;
-
-        const start = (currentPage - 1) * pageSize;
-        const pageItems = sorted.slice(start, start + pageSize);
-
-        renderRenta(pageItems);
-        renderPagination(totalItems, currentPage, pageSize);
-        updateSortIcons();
-    }
+    let debounceTimer = null;
 
     async function cargarRentas() {
-        const json = await post("getAll");
-        if (json.status === "success") {
-            rentas = json.data;
-            renderTable();
-        }
-    }
-
-    cargarRentas();
-
-        buscadorInput.addEventListener('input', (e) => {
-        textoBusqueda = e.target.value.trim();
-        currentPage = 1;
-        renderTable();
-    });
-
-    document.querySelectorAll('th[data-sort]').forEach(th => {
-        th.addEventListener('click', () => {
-            const col = th.dataset.sort;
-            if (sortColumn === col) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortColumn = col;
-                sortDirection = 'asc';
-            }
-            currentPage = 1;
-            renderTable();
+        const json = await post("getAll", {
+            page: currentPage,
+            pageSize,
+            sortColumn,
+            sortDirection,
+            search: textoBusqueda
         });
-    });
 
-  pageSizeSelect.forEach(select => {
+    if (json.status !== "success") return; 
+
+    const totalItems = json.total;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize)); 
+
+if ( currentPage > totalPages) {
+    currentPage = totalPages; 
+    return cargarRentas();
+}
+
+renderRenta(json.data);
+renderPagination(totalItems, currentPage, pageSize);
+
+}
+
+cargarRentas();
+
+ordenarPorSelect.addEventListener('change', (e) => {
+    sortColumn = e.target.value;
+    currentPage = 1;
+    cargarRentas();
+});
+
+direccionSelect.addEventListener('change', (e) => {
+    sortDirection = e.target.value;
+    currentPage = 1;
+    cargarRentas();
+});
+
+pageSizeSelect.forEach(select => {
     select.addEventListener('change', (e) => {
         pageSize = Number(e.target.value);
         currentPage = 1;
-        pageSizeSelect.forEach(s => s.value = pageSize); 
-        renderTable();
+        pageSizeSelect.forEach(s => s.value = pageSize);
+        cargarRentas();
     });
 });
 
-  paginationEl.forEach(el => {
+paginationEl.forEach(el => {    
     el.addEventListener('click', (e) => {
         const btn = e.target.closest('button[data-page]');
         if (!btn || btn.disabled) return;
         currentPage = Number(btn.dataset.page);
-        renderTable();
+        cargarRentas();
     });
 });   
 
+buscadorInput.addEventListener('input', (e) => {
+    textoBusqueda = e.target.value.trim();
+    currentPage = 1;
+    cargarRentas();
+});
 
-    tbody.addEventListener("click", async (e) => {
-        if (!e.target.classList.contains("deleteBtn")) return;
+tbody.addEventListener('click', async (e) => {
+    if (!e.target.classList.contains("deleteBtn")) return;
         const id = e.target.dataset.id;
 
         const confirmacion = await Swal.fire({
@@ -159,118 +111,3 @@ if (tbody) {
     });
 }
 
-const btnGuardar = document.getElementById("btnGuardar");
-if (btnGuardar) {
-    const params = new URLSearchParams(window.location.search);
-    const id_renta = params.get("id"); 
-
-    let listaVehiculos = [];
-    let listaSeguros = [];
-    let listaClientes = [];
-    let listaReservas = [];
-    let rentaOriginal = null;
-
-    (async function init() {
-        const catalogsJson = await post("getFormNeeds");
-        if (catalogsJson.status !== "success") return;
-
-        const catalogs = catalogsJson.data;
-        listaVehiculos = catalogs.vehiculos;
-        listaSeguros = catalogs.seguros;
-        poblarSelects(catalogs);
-        listaClientes = catalogs.clientes;
-
-        const reservasJson = await post("getReservas");
-if (reservasJson.status === "success") listaReservas = reservasJson.data;
-
-const ahora = new Date();
-ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
-document.getElementById("fecha_inicio").min = ahora.toISOString().slice(0, 16);
-
-document.getElementById("fecha_inicio").addEventListener("change", (e) => {
-    document.getElementById("fecha_fin").min = e.target.value;
-});
-
-
-        if (id_renta) {
-            const rentaJson = await post("getOne", { id_renta });
-            if (rentaJson.status !== "success") {
-                Swal.fire("Error", "No se pudo cargar la renta", "error").then(() => window.location.href = "index.html");
-                return;
-            }
-            rentaOriginal = rentaJson.data;
-            const clienteEncontrado = listaClientes.find(c => c.id_cliente == rentaOriginal.id_cliente);
-if (clienteEncontrado) {
-    document.getElementById("cliente_texto").value = `${clienteEncontrado.nombre} ${clienteEncontrado.apellido}`;
-    document.getElementById("id_cliente").value = rentaOriginal.id_cliente;
-}
-
-const vehiculoEncontrado = listaVehiculos.find(v => v.id_vehiculo == rentaOriginal.id_vehiculo);
-if (vehiculoEncontrado) {
-    document.getElementById("vehiculo_texto").value = `${vehiculoEncontrado.marca} ${vehiculoEncontrado.nombre_modelo}`;
-    actualizarPlacaCascada(listaVehiculos);
-    document.getElementById("placa_texto").value = vehiculoEncontrado.placa;
-    document.getElementById("id_vehiculo").value = rentaOriginal.id_vehiculo;
-}
-            document.getElementById("id_seguro").value = rentaOriginal.id_seguro;
-            document.getElementById("id_sucursal_origen").value = rentaOriginal.id_sucursal_origen;
-            document.getElementById("id_sucursal_destino").value = rentaOriginal.id_sucursal_destino;
-            document.getElementById("fecha_inicio").value = rentaOriginal.fecha_inicio.replace(' ', 'T').slice(0, 16);
-            document.getElementById("fecha_fin").value = rentaOriginal.fecha_fin.replace(' ', 'T').slice(0, 16);
-            document.getElementById("monto_deposito").value = rentaOriginal.monto_deposito;
-            document.getElementById("precio_cobrado").value = rentaOriginal.precio_cobrado;
-        }
-
-        ["id_seguro", "fecha_inicio", "fecha_fin"].forEach(id => {
-    document.getElementById(id).addEventListener("change", () => calcularPrecioTotal(listaVehiculos, listaSeguros));
-});
-})();
-
-document.getElementById("cliente_texto").addEventListener("input", () => resolverCliente(listaClientes));
-document.getElementById("vehiculo_texto").addEventListener("input", () => actualizarPlacaCascada(listaVehiculos));
-document.getElementById("placa_texto").addEventListener("input", () => {
-    resolverVehiculoPorPlaca(listaVehiculos);
-    calcularPrecioTotal(listaVehiculos, listaSeguros);
-});
-
-    btnGuardar.addEventListener("click", async () => {
-        const datos = {
-            id_cliente: document.getElementById("id_cliente").value,
-            id_vehiculo: document.getElementById("id_vehiculo").value,
-            id_seguro: document.getElementById("id_seguro").value,
-            id_sucursal_origen: document.getElementById("id_sucursal_origen").value,
-            id_sucursal_destino: document.getElementById("id_sucursal_destino").value,
-            fecha_inicio: document.getElementById("fecha_inicio").value,
-            fecha_fin: document.getElementById("fecha_fin").value,
-            monto_deposito: document.getElementById("monto_deposito").value,
-            precio_cobrado: document.getElementById("precio_cobrado").value,
-            estado_deposito: rentaOriginal ? rentaOriginal.estado_deposito : "Retenido",
-            estado: rentaOriginal ? rentaOriginal.estado : "Activa"
-        };
-
-        if (Object.values(datos).some(v => v === "")) {
-            Swal.fire("Faltan datos", "Rellena todos los parámetros requeridos antes de guardar", "warning");
-            return;
-        }
-
-        if (hayConflictoReserva(listaReservas, datos.id_vehiculo, datos.fecha_inicio, datos.fecha_fin, id_renta)) {
-    Swal.fire("Conflicto de fechas", "Ese vehículo ya está reservado en ese rango de fechas", "error");
-    return;
-}
-
-        if (clienteTieneRentaActiva(listaReservas, datos.id_cliente, id_renta)) {
-    Swal.fire("Cliente con renta activa", "Este cliente ya tiene una renta activa, no puede tener más de una", "error");
-    return;
-}
-
-        if (id_renta) datos.id_renta = id_renta;
-        const json = id_renta ? await post("update", { datos }) : await post("insert", { datos });
-
-        if (json.status === "success") {
-            await Swal.fire("Listo", json.message, "success");
-            window.location.href = "index.html";
-        } else {
-            Swal.fire("Error", json.message, "error");
-        }
-    });
-}
