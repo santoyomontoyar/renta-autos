@@ -13,59 +13,29 @@ formArea.innerHTML = form();
 const name = document.querySelector('#name');
 const btnGuardar = document.querySelector('#btnGuardar');
 
-let roles = await getRoles();
-let idEditar = null;
-
 let sortColumn = 'id_rol';
 let sortDirection = 'asc';
+let roles = [];
+let idEditar = null;
 
-function getSortedRoles() {
-    return [...roles].sort((a, b) => {
-        let valA = a[sortColumn];
-        let valB = b[sortColumn];
-
-        if (sortColumn === 'id_rol') {
-            valA = Number(valA);
-            valB = Number(valB);
-        } else {
-            valA = String(valA).toLowerCase();
-            valB = String(valB).toLowerCase();
-        }
-
-        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-    });
+async function cargarRoles() {
+    roles = await getRoles(sortColumn, sortDirection);
+    renderRoles(roles);
 }
 
-function updateSortIcons() {
-    document.querySelectorAll('th[data-sort]').forEach(th => {
-        const icon = th.querySelector('.sortIcon');
-        icon.textContent = th.dataset.sort === sortColumn
-            ? (sortDirection === 'asc' ? '▲' : '▼')
-            : '';
-    });
-}
+await cargarRoles();
 
-function renderTable() {
-    const sorted = getSortedRoles();
-    renderRoles(sorted);
-    updateSortIcons();
-}
+const ordenarPorSelect = document.querySelector('#ordenarPor');
+const direccionSelect = document.querySelector('#direccionOrden');
 
-renderTable();
+ordenarPorSelect.addEventListener('change', (e) => {
+    sortColumn = e.target.value;
+    cargarRoles();
+});
 
-document.querySelectorAll('th[data-sort]').forEach(th => {
-    th.addEventListener('click', () => {
-        const col = th.dataset.sort;
-        if (sortColumn === col) {
-            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            sortColumn = col;
-            sortDirection = 'asc';
-        }
-        renderTable();
-    });
+direccionSelect.addEventListener('change', (e) => {
+    sortDirection = e.target.value;
+    cargarRoles();
 });
 
 listBtn.addEventListener('click', function () {
@@ -109,8 +79,7 @@ table.addEventListener('click', function (e) {
                 : { title: 'Error', text: json.message, icon: 'error' }; 
 
           Swal.fire(response).then(async () => {
-                    roles = await getRoles();
-                    renderRoles(roles);
+                     await cargarRoles();
                 });
             }
         });
@@ -136,8 +105,7 @@ table.addEventListener('click', function (e) {
                 idEditar = null
                 clearForm();
                 views();
-                roles = await getRoles();
-                renderRoles(roles);
+                await cargarRoles();
             } else {
                 Swal.fire({ title: 'Error', text: json.message || 'No se pudo guardar', icon: 'error' });
             }

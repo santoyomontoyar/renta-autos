@@ -9,8 +9,8 @@ async function post(payload) {
     return res.json();
 }
  
-export default async function getRoles() {
-    const json = await post({ action: "getAll" });
+export default async function getRoles(sortColumn = 'id_rol', sortDirection = 'asc') {
+    const json = await post({ action: "getAll", sortColumn, sortDirection });
     return json.data;
 }
  

@@ -4,94 +4,53 @@ import views, { clearForm } from './cargo_adicional/views.js';
 
 let rentas = [];
 let fallas = [];
-let cargos = [];
 
 let currentPage = 1;
 const pageSizeSelect = document.querySelectorAll('.pageSize');
 const paginationEl = document.querySelectorAll('.pagination');
 const buscadorInput = document.querySelector('#buscador');
+const ordenarPorSelect = document.querySelector('#ordenarPor');
+const direccionSelect = document.querySelector('#direccionOrden');
+
 let pageSize = Number(pageSizeSelect[0]?.value) || 20;
-let sortColumn = 'id_cargo';
-let sortDirection = 'desc';
+let sortColumn = ordenarPorSelect.value;
+let sortDirection = direccionSelect.value;
 let textoBusqueda = '';
-
-function getFilteredCargos() {
-    if (!textoBusqueda) return cargos;
-
-    const q = textoBusqueda.toLowerCase();
-    return cargos.filter(c =>
-        String(c.id_cargo).includes(q) ||
-        String(c.id_renta).includes(q) ||
-        String(c.id_falla).includes(q) ||
-        (c.descripcion ?? '').toLowerCase().includes(q)
-    );
-}
-
-function getSortedCargos() {
-    const columnasNumericas = ['id_cargo', 'id_renta', 'monto_total', 'monto_seguro', 'monto_cliente', 'monto_devuelto', 'monto_extra_pagado'];
-    const base = getFilteredCargos();
-
-    return [...base].sort((a, b) => {
-        let valA = a[sortColumn];
-        let valB = b[sortColumn];
-
-        if (columnasNumericas.includes(sortColumn)) {
-            valA = Number(valA);
-            valB = Number(valB);
-        } else {
-            valA = String(valA ?? '').toLowerCase();
-            valB = String(valB ?? '').toLowerCase();
-        }
-
-        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-    });
-}
-
-function updateSortIcons() {
-    document.querySelectorAll('th[data-sort]').forEach(th => {
-        const icon = th.querySelector('.sortIcon');
-        icon.textContent = th.dataset.sort === sortColumn
-            ? (sortDirection === 'asc' ? '▲' : '▼')
-            : '';
-    });
-}
-
-function renderTable() {
-    const sorted = getSortedCargos();
-    const totalItems = sorted.length;
-    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-
-    if (currentPage > totalPages) currentPage = totalPages;
-    if (currentPage < 1) currentPage = 1;
-
-    const start = (currentPage - 1) * pageSize;
-    const pageItems = sorted.slice(start, start + pageSize);
-
-    renderCargo(pageItems);
-    renderPagination(totalItems, currentPage, pageSize);
-    updateSortIcons();
-}
+let debounceTimer = null;
 
 async function cargarCargos() {
     const res = await fetch("../php/cargo_adicional.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "getAll" })
+        body: JSON.stringify({
+            action: "getAll",
+            page: currentPage,
+            pageSize,
+            sortColumn,
+            sortDirection,
+            search: textoBusqueda
+        })
     });
     const json = await res.json();
-    if (json.status === "success") {
-        cargos = json.data;
-        renderTable();
+    if (json.status !== "success") return;
+ 
+    const totalItems = json.total;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+ 
+    if (currentPage > totalPages) {
+        currentPage = totalPages;
+        return cargarCargos();
     }
+ 
+    renderCargo(json.data);
+    renderPagination(totalItems, currentPage, pageSize);
 }
 
 async function cargarDatosRelacionales() {
     const resRentas = await fetch("../php/renta.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "getAll" })
+        body: JSON.stringify({ action: "getAll", page: 1, pageSize: 1000 })
     });
     const jsonRentas = await resRentas.json();
     if (jsonRentas.status === "success") rentas = jsonRentas.data;
@@ -174,26 +133,24 @@ function wireEvents() {
     });
 }
 
-document.querySelectorAll('th[data-sort]').forEach(th => {
-        th.addEventListener('click', () => {
-            const col = th.dataset.sort;
-            if (sortColumn === col) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortColumn = col;
-                sortDirection = 'asc';
-            }
-            currentPage = 1;
-            renderTable();
-        });
-    });
+    ordenarPorSelect.addEventListener('change', (e) => {
+    sortColumn = e.target.value;
+    currentPage = 1;
+    cargarCargos();
+});
+
+direccionSelect.addEventListener('change', (e) => {
+    sortDirection = e.target.value;
+    currentPage = 1;
+    cargarCargos();
+});
 
     pageSizeSelect.forEach(select => {
         select.addEventListener('change', (e) => {
             pageSize = Number(e.target.value);
             currentPage = 1;
             pageSizeSelect.forEach(s => s.value = pageSize);
-            renderTable();
+            cargarCargos();
         });
     });
 
@@ -202,14 +159,14 @@ document.querySelectorAll('th[data-sort]').forEach(th => {
             const btn = e.target.closest('button[data-page]');
             if (!btn || btn.disabled) return;
             currentPage = Number(btn.dataset.page);
-            renderTable();
+            cargarCargos();
         });
     });
 
     buscadorInput.addEventListener('input', (e) => {
         textoBusqueda = e.target.value.trim();
         currentPage = 1;
-        renderTable();
+        cargarCargos();
     });
 
 
