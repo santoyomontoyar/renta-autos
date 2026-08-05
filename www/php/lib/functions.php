@@ -1340,12 +1340,58 @@ function getImagenesModeloPaginado($page = 1, $orderBy = 'id_imagen', $orderDir 
  * ============================================================
  */
 
+function getStatsVentasResumenMes() {
+    global $db;
+    $stmt = $db->query("
+        SELECT
+            SUM(CASE WHEN DATE_FORMAT(fecha_inicio, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') THEN precio_cobrado ELSE 0 END) AS ventas_este_mes,
+            SUM(CASE WHEN DATE_FORMAT(fecha_inicio, '%Y-%m') = DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m') THEN precio_cobrado ELSE 0 END) AS ventas_mes_pasado
+        FROM renta
+    ");
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return [
+        'ventas_este_mes'   => (float)($row['ventas_este_mes'] ?? 0),
+        'ventas_mes_pasado' => (float)($row['ventas_mes_pasado'] ?? 0)
+    ];
+}
+
+function getStatsVentasPorDia() {
+    global $db;
+    $stmt = $db->query("
+        SELECT DATE(fecha_inicio) AS dia, SUM(precio_cobrado) AS total
+        FROM renta
+        WHERE fecha_inicio >= CURDATE() - INTERVAL 30 DAY
+        GROUP BY dia
+        ORDER BY dia ASC
+    ");
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getStatsFallasPorMesFiltro($mes) {
+    global $db;
+
+    // valida formato YYYY-MM; si no coincide, cae al mes actual (evita consultas con basura)
+    if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $mes)) {
+        $mes = date('Y-m');
+    }
+
+    $stmt = $db->prepare("
+        SELECT COUNT(*) AS total
+        FROM reporte_falla
+        WHERE DATE_FORMAT(fecha_reporte, '%Y-%m') = :mes
+    ");
+    $stmt->bindParam(':mes', $mes);
+    $stmt->execute();
+    return (int)$stmt->fetchColumn();
+}
+
 function getStatsModelosPorCategoria() {
     global $db;
     $stmt = $db->query("
-        SELECT categoria, COUNT(*) AS total
-        FROM modelo_vehiculo
-        GROUP BY categoria
+        SELECT m.categoria, COUNT(*) AS total
+        FROM vehiculo v
+        INNER JOIN modelo_vehiculo m ON v.id_modelo = m.id_modelo
+        GROUP BY m.categoria
         ORDER BY total DESC
     ");
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1362,27 +1408,6 @@ function getStatsFallasPorMes() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function getStatsFallasResumenMes() {
-    global $db;
-
-    $esteMes = $db->query("
-        SELECT COUNT(*) FROM reporte_falla
-        WHERE DATE_FORMAT(fecha_reporte, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
-    ")->fetchColumn();
-
-    $mesPasado = $db->query("
-        SELECT COUNT(*) FROM reporte_falla
-        WHERE DATE_FORMAT(fecha_reporte, '%Y-%m') = DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m')
-    ")->fetchColumn();
-
-    $total = $db->query("SELECT COUNT(*) FROM reporte_falla")->fetchColumn();
-
-    return [
-        'este_mes'   => (int)$esteMes,
-        'mes_pasado' => (int)$mesPasado,
-        'total'      => (int)$total
-    ];
-}
 
 function getStatsTopMecanicos() {
     global $db;
@@ -1395,36 +1420,6 @@ function getStatsTopMecanicos() {
         LIMIT 5
     ");
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-function getStatsImagenesPorTipo() {
-    global $db;
-    $stmt = $db->query("
-        SELECT
-            SUM(CASE WHEN es_principal = 1 THEN 1 ELSE 0 END) AS principales,
-            SUM(CASE WHEN es_principal = 0 THEN 1 ELSE 0 END) AS galeria
-        FROM imagen_modelo_vehiculo
-    ");
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    return [
-        'principales' => (int)($row['principales'] ?? 0),
-        'galeria'     => (int)($row['galeria'] ?? 0)
-    ];
-}
-
-function getStatsFallasConEvidencia() {
-    global $db;
-
-    $conFoto = $db->query("
-        SELECT COUNT(DISTINCT id_falla) FROM imagen_falla
-    ")->fetchColumn();
-
-    $total = $db->query("SELECT COUNT(*) FROM reporte_falla")->fetchColumn();
-
-    return [
-        'con_evidencia' => (int)$conFoto,
-        'sin_evidencia' => max(0, (int)$total - (int)$conFoto)
-    ];
 }
 
 function getAllFallasConMecanico() {
