@@ -4,12 +4,12 @@ import views, { clearForm } from './documento_cliente/views.js';
 
 let clientes = [];
 let currentPage = 1;
-let currentOrderBy = 'd.id_documento';
-let currentOrderDir = 'ASC';
-let currentTipoPriority = 'INE_PRIMERO';
+let searchTimeout = null;
 
 async function cargarDocumentos() {
     const tbody = document.querySelector("#tbody");
+    if (!tbody) return;
+
     tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">Cargando registros...</td></tr>`;
 
     try {
@@ -19,9 +19,10 @@ async function cargarDocumentos() {
             body: JSON.stringify({ 
                 action: "getAll", 
                 page: currentPage,
-                order_by: currentOrderBy,
-                order_dir: currentOrderDir,
-                tipo_prioridad: currentTipoPriority
+                search: document.querySelector("#searchInput")?.value.trim() || '',
+                order_by: document.querySelector("#orderBySelect")?.value || 'd.id_documento',
+                order_dir: document.querySelector("#orderDirSelect")?.value || 'ASC',
+                tipo_prioridad: document.querySelector("#tipoPrioritySelect")?.value || 'INE_PRIMERO'
             })
         });
         const json = await res.json();
@@ -44,7 +45,7 @@ function renderPagination(p) {
     if (!container || !info) return;
 
     if (!p || p.totalRows === 0) {
-        info.textContent = "No hay documentos registrados";
+        info.textContent = "No se encontraron documentos";
         container.innerHTML = "";
         return;
     }
@@ -58,8 +59,6 @@ function renderPagination(p) {
     for (let i = 1; i <= p.totalPages; i++) {
         if (i === 1 || i === p.totalPages || (i >= p.page - 2 && i <= p.page + 2)) {
             html += `<button class="join-item btn btn-sm pageBtn ${i === p.page ? 'btn-primary' : ''}" data-page="${i}">${i}</button>`;
-        } else if (i === p.page - 3 || i === p.page + 3) {
-            html += `<button class="join-item btn btn-sm btn-disabled">...</button>`;
         }
     }
 
@@ -89,12 +88,12 @@ async function cargarClientesForSelect() {
 }
 
 function wireEvents() {
-    document.querySelector("#addBtn").addEventListener("click", () => {
+    document.querySelector("#addBtn")?.addEventListener("click", () => {
         clearForm();
         views();
     });
 
-    document.querySelector("#tablaDocumentos").addEventListener("click", (e) => {
+    document.querySelector("#tablaDocumentos")?.addEventListener("click", (e) => {
         const id = e.target.dataset.id;
         if (e.target.classList.contains("editBtn")) editarDocumento(id);
         if (e.target.classList.contains("deleteBtn")) eliminarDocumento(id);
@@ -108,36 +107,29 @@ function wireEvents() {
         });
     }
 
-    document.querySelector("#orderBySelect").addEventListener("change", (e) => {
-        currentOrderBy = e.target.value;
-        currentPage = 1;
-
-        const dirContainer = document.querySelector("#dirContainer");
-        const tipoContainer = document.querySelector("#tipoGroupContainer");
-
-        if (currentOrderBy === 'tipo_prioridad') {
-            dirContainer.classList.add("hidden");
-            tipoContainer.classList.remove("hidden");
-        } else {
-            dirContainer.classList.remove("hidden");
-            tipoContainer.classList.add("hidden");
-        }
-
-        cargarDocumentos();
+    
+    document.querySelector("#searchInput")?.addEventListener("input", () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentPage = 1;
+            cargarDocumentos();
+        }, 300);
     });
 
-    document.querySelector("#orderDirSelect").addEventListener("change", (e) => {
-        currentOrderDir = e.target.value;
-        currentPage = 1;
-        cargarDocumentos();
+    
+    ['#orderBySelect', '#orderDirSelect', '#tipoPrioritySelect'].forEach(sel => {
+        document.querySelector(sel)?.addEventListener("change", (e) => {
+            if (sel === '#orderBySelect') {
+                const isPriority = e.target.value === 'tipo_prioridad';
+                document.querySelector("#dirContainer")?.classList.toggle("hidden", isPriority);
+                document.querySelector("#tipoGroupContainer")?.classList.toggle("hidden", !isPriority);
+            }
+            currentPage = 1;
+            cargarDocumentos();
+        });
     });
 
-    document.querySelector("#tipoPrioritySelect").addEventListener("change", (e) => {
-        currentTipoPriority = e.target.value;
-        currentPage = 1;
-        cargarDocumentos();
-    });
-
+    
     const paginationControls = document.querySelector("#paginationControls");
     if (paginationControls) {
         paginationControls.addEventListener("click", (e) => {

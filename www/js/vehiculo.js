@@ -5,12 +5,12 @@ import views, { clearForm } from './vehiculo/views.js';
 let modelos = [];
 let sucursales = [];
 let currentPage = 1;
-let currentOrderBy = 'v.id_vehiculo';
-let currentOrderDir = 'ASC';
-let currentEstadoPriority = 'DISPONIBLE_PRIMERO';
+let searchTimeout = null;
 
 async function cargarVehiculos() {
     const tbody = document.querySelector("#tbody");
+    if (!tbody) return;
+
     tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-400">Cargando registros...</td></tr>`;
 
     try {
@@ -20,9 +20,10 @@ async function cargarVehiculos() {
             body: JSON.stringify({ 
                 action: "getAll", 
                 page: currentPage,
-                order_by: currentOrderBy,
-                order_dir: currentOrderDir,
-                estado_prioridad: currentEstadoPriority
+                search: document.querySelector("#searchInput")?.value.trim() || '',
+                order_by: document.querySelector("#orderBySelect")?.value || 'v.id_vehiculo',
+                order_dir: document.querySelector("#orderDirSelect")?.value || 'ASC',
+                estado_prioridad: document.querySelector("#estadoPrioritySelect")?.value || 'DISPONIBLE_PRIMERO'
             })
         });
         const json = await res.json();
@@ -45,7 +46,7 @@ function renderPagination(p) {
     if (!container || !info) return;
 
     if (!p || p.totalRows === 0) {
-        info.textContent = "No hay vehículos registrados";
+        info.textContent = "No se encontraron vehículos";
         container.innerHTML = "";
         return;
     }
@@ -59,8 +60,6 @@ function renderPagination(p) {
     for (let i = 1; i <= p.totalPages; i++) {
         if (i === 1 || i === p.totalPages || (i >= p.page - 2 && i <= p.page + 2)) {
             html += `<button class="join-item btn btn-sm pageBtn ${i === p.page ? 'btn-primary' : ''}" data-page="${i}">${i}</button>`;
-        } else if (i === p.page - 3 || i === p.page + 3) {
-            html += `<button class="join-item btn btn-sm btn-disabled">...</button>`;
         }
     }
 
@@ -79,7 +78,7 @@ async function cargarModelos() {
         const json = await res.json();
         if (json.status === "success") modelos = json.data;
     } catch (e) {
-        console.warn("No se pudieron cargar los modelos:", e);
+        console.warn("No se pudieron cargar modelos:", e);
     }
 }
 
@@ -93,17 +92,17 @@ async function cargarSucursales() {
         const json = await res.json();
         if (json.status === "success") sucursales = json.data;
     } catch (e) {
-        console.warn("No se pudieron cargar las sucursales:", e);
+        console.warn("No se pudieron cargar sucursales:", e);
     }
 }
 
 function wireEvents() {
-    document.querySelector("#addBtn").addEventListener("click", () => {
+    document.querySelector("#addBtn")?.addEventListener("click", () => {
         clearForm();
         views();
     });
 
-    document.querySelector("#tablaVehiculos").addEventListener("click", (e) => {
+    document.querySelector("#tablaVehiculos")?.addEventListener("click", (e) => {
         const id = e.target.dataset.id;
         if (e.target.classList.contains("editBtn")) editarVehiculo(id);
         if (e.target.classList.contains("deleteBtn")) eliminarVehiculo(id);
@@ -122,36 +121,29 @@ function wireEvents() {
         });
     }
 
-    document.querySelector("#orderBySelect").addEventListener("change", (e) => {
-        currentOrderBy = e.target.value;
-        currentPage = 1;
-
-        const dirContainer = document.querySelector("#dirContainer");
-        const estadoContainer = document.querySelector("#estadoGroupContainer");
-
-        if (currentOrderBy === 'estado_prioridad') {
-            dirContainer.classList.add("hidden");
-            estadoContainer.classList.remove("hidden");
-        } else {
-            dirContainer.classList.remove("hidden");
-            estadoContainer.classList.add("hidden");
-        }
-
-        cargarVehiculos();
+    
+    document.querySelector("#searchInput")?.addEventListener("input", () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentPage = 1;
+            cargarVehiculos();
+        }, 300);
     });
 
-    document.querySelector("#orderDirSelect").addEventListener("change", (e) => {
-        currentOrderDir = e.target.value;
-        currentPage = 1;
-        cargarVehiculos();
+    
+    ['#orderBySelect', '#orderDirSelect', '#estadoPrioritySelect'].forEach(sel => {
+        document.querySelector(sel)?.addEventListener("change", (e) => {
+            if (sel === '#orderBySelect') {
+                const isPriority = e.target.value === 'estado_prioridad';
+                document.querySelector("#dirContainer")?.classList.toggle("hidden", isPriority);
+                document.querySelector("#estadoGroupContainer")?.classList.toggle("hidden", !isPriority);
+            }
+            currentPage = 1;
+            cargarVehiculos();
+        });
     });
 
-    document.querySelector("#estadoPrioritySelect").addEventListener("change", (e) => {
-        currentEstadoPriority = e.target.value;
-        currentPage = 1;
-        cargarVehiculos();
-    });
-
+    
     const paginationControls = document.querySelector("#paginationControls");
     if (paginationControls) {
         paginationControls.addEventListener("click", (e) => {
@@ -261,9 +253,9 @@ async function eliminarVehiculo(id) {
 }
 
 function resolverModelo() {
-    const marca = document.querySelector("#marca").value.trim();
-    const nombre_modelo = document.querySelector("#nombre_modelo").value.trim();
-    const year = document.querySelector("#year").value.trim();
+    const marca = document.querySelector("#marca")?.value.trim();
+    const nombre_modelo = document.querySelector("#nombre_modelo")?.value.trim();
+    const year = document.querySelector("#year")?.value.trim();
     const hint = document.querySelector("#modeloHint");
 
     if (!hint) return;
@@ -286,7 +278,7 @@ function resolverModelo() {
 }
 
 function actualizarCascada() {
-    const marca = document.querySelector("#marca").value.trim();
+    const marca = document.querySelector("#marca")?.value.trim();
     const nombreModeloInput = document.querySelector("#nombre_modelo");
     const yearInput = document.querySelector("#year");
     const modeloListEl = document.querySelector("#modeloList");

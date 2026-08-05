@@ -5,9 +5,7 @@ const btnActualizar = document.querySelector("#btnActualizar");
 const tbody = document.querySelector("#tbody");
 
 let currentPage = 1;
-let currentOrderBy = 'u.id_usuario';
-let currentOrderDir = 'ASC';
-let currentRolPriority = 'CLIENTE_PRIMERO';
+let searchTimeout = null;
 
 async function post(action, extra = {}) {
     const res = await fetch("../php/user.php", {
@@ -25,6 +23,7 @@ async function cargarRoles(selectEl) {
     }
 }
 
+
 async function cargarUsuarios() {
     if (!tbody) return;
 
@@ -33,9 +32,10 @@ async function cargarUsuarios() {
     try {
         const json = await post("getAll", { 
             page: currentPage,
-            order_by: currentOrderBy,
-            order_dir: currentOrderDir,
-            rol_prioridad: currentRolPriority
+            search: document.querySelector("#searchInput")?.value.trim() || '',
+            order_by: document.querySelector("#orderBySelect")?.value || 'u.id_usuario',
+            order_dir: document.querySelector("#orderDirSelect")?.value || 'ASC',
+            rol_prioridad: document.querySelector("#rolPrioritySelect")?.value || 'CLIENTE_PRIMERO'
         });
 
         if (json.status === "success") {
@@ -56,7 +56,7 @@ function renderPagination(p) {
     if (!container || !info) return;
 
     if (!p || p.totalRows === 0) {
-        info.textContent = "No hay usuarios registrados";
+        info.textContent = "No se encontraron usuarios";
         container.innerHTML = "";
         return;
     }
@@ -70,8 +70,6 @@ function renderPagination(p) {
     for (let i = 1; i <= p.totalPages; i++) {
         if (i === 1 || i === p.totalPages || (i >= p.page - 2 && i <= p.page + 2)) {
             html += `<button class="join-item btn btn-sm pageBtn ${i === p.page ? 'btn-primary' : ''}" data-page="${i}">${i}</button>`;
-        } else if (i === p.page - 3 || i === p.page + 3) {
-            html += `<button class="join-item btn btn-sm btn-disabled">...</button>`;
         }
     }
 
@@ -83,36 +81,29 @@ function renderPagination(p) {
 if (tbody) {
     cargarUsuarios();
 
-    document.querySelector("#orderBySelect").addEventListener("change", (e) => {
-        currentOrderBy = e.target.value;
-        currentPage = 1;
-
-        const dirContainer = document.querySelector("#dirContainer");
-        const rolContainer = document.querySelector("#rolGroupContainer");
-
-        if (currentOrderBy === 'rol_prioridad') {
-            dirContainer.classList.add("hidden");
-            rolContainer.classList.remove("hidden");
-        } else {
-            dirContainer.classList.remove("hidden");
-            rolContainer.classList.add("hidden");
-        }
-
-        cargarUsuarios();
+    
+    document.querySelector("#searchInput")?.addEventListener("input", () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentPage = 1;
+            cargarUsuarios();
+        }, 300);
     });
 
-    document.querySelector("#orderDirSelect").addEventListener("change", (e) => {
-        currentOrderDir = e.target.value;
-        currentPage = 1;
-        cargarUsuarios();
+    
+    ['#orderBySelect', '#orderDirSelect', '#rolPrioritySelect'].forEach(sel => {
+        document.querySelector(sel)?.addEventListener("change", (e) => {
+            if (sel === '#orderBySelect') {
+                const isPriority = e.target.value === 'rol_prioridad';
+                document.querySelector("#dirContainer")?.classList.toggle("hidden", isPriority);
+                document.querySelector("#rolGroupContainer")?.classList.toggle("hidden", !isPriority);
+            }
+            currentPage = 1;
+            cargarUsuarios();
+        });
     });
 
-    document.querySelector("#rolPrioritySelect").addEventListener("change", (e) => {
-        currentRolPriority = e.target.value;
-        currentPage = 1;
-        cargarUsuarios();
-    });
-
+    
     tbody.addEventListener("click", function (evento) {
         if (!evento.target.matches(".btn-error")) return;
         evento.preventDefault();
@@ -140,6 +131,7 @@ if (tbody) {
         });
     });
 
+   
     const paginationControls = document.querySelector("#paginationControls");
     if (paginationControls) {
         paginationControls.addEventListener("click", (e) => {
@@ -160,6 +152,7 @@ if (tbody) {
         });
     }
 }
+
 
 if (btnGuardar) {
     const Nombre = document.querySelector("#Nombre");
@@ -195,6 +188,7 @@ if (btnGuardar) {
         btnCancelar.addEventListener("click", () => window.location.href = "index.html");
     }
 }
+
 
 if (btnActualizar) {
     const Nombre = document.querySelector("#Nombre");
