@@ -1,18 +1,15 @@
-export async function getAllSeguros(ordenarPor = "id_seguro", direccion = "ASC") {
+export async function getAllSeguros(ordenarPor = "id_seguro", direccion = "ASC", busqueda = "") {
     try {
         const res = await fetch("../php/seguro.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "getAll", ordenarPor, direccion })
+            body: JSON.stringify({ action: "getAll", ordenarPor, direccion, busqueda })
         });
 
         return await res.json();
     } catch (error) {
         console.error("Error en getAllSeguros:", error);
-        return {
-            status: "error",
-            message: "Error al obtener los registros"
-        };
+        return { status: "error", message: "Error al obtener los registros" };
     }
 }
 

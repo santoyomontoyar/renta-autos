@@ -25,6 +25,14 @@
         </button>
 
         <div class="flex items-center gap-2 flex-shrink-0">
+
+        <input
+        type="text"
+        id="buscarSeguro"
+        placeholder="Buscar por tipo de seguro..."
+        class="input input-bordered input-sm w-56">
+
+
     <label for="ordenSeguro" class="text-sm font-medium text-gray-600 whitespace-nowrap">Ordenar por:</label>
     <select id="ordenSeguro" class="select select-bordered select-sm w-56">
         <option value="id_seguro-ASC">ID (ascendente)</option>
@@ -47,7 +55,7 @@
                         <th>ID</th>
                         <th>Tipo de Seguro</th>
                         <th>Precio x Día</th>
-                        <th>Acción</th>
+                        <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
 
