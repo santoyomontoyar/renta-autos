@@ -1,24 +1,26 @@
 <?php
-
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 header("Content-Type: application/json; charset=utf-8");
-
 require_once "lib/functions.php";
 
 $_post = json_decode(file_get_contents("php://input"), true);
 $action = $_post['action'] ?? '';
 
-try {
+global $db;
 
+try {
     switch ($action) {
 
         case "getAll":
-          $data = getAllFallasConMecanico();
+            $page     = $_post['page'] ?? 1;
+            $orderBy  = $_post['order_by'] ?? 'id_falla';
+            $orderDir = $_post['order_dir'] ?? 'ASC';
+            $buscar   = $_post['buscar'] ?? '';
+
+            $resultado = getFallasPaginado($page, $orderBy, $orderDir, $buscar);
             echo json_encode([
                 "status" => "success",
-                "data" => $data
+                "data" => $resultado['data'],
+                "pagination" => $resultado['pagination']
             ]);
             break;
 
@@ -31,40 +33,30 @@ try {
             ]);
             break;
 
-         case "update":
+        case "update":
             $ok = actualizarFalla($_post['id_falla'], $_post['id_renta'], $_post['id_usuario'], $_post['descripcion']);
             echo json_encode([
                 "status"  => $ok ? "success" : "error",
                 "message" => $ok ? "Reporte actualizado" : "No se pudo actualizar el reporte"
             ]);
             break;
- 
+
         case "delete_falla":
             $ok = deleteFalla($_post['id_falla']);
             if ($ok === "en_uso") {
-                echo json_encode([
-                    "status" => "error",
-                    "message" => "No se puede eliminar este reporte porque está en uso"
-                ]);
+                echo json_encode(["status" => "error", "message" => "No se puede eliminar este reporte porque está en uso"]);
             } else {
                 echo json_encode([
                     "status" => $ok ? "success" : "error",
                     "message" => $ok ? "Reporte eliminado" : "No se pudo eliminar este reporte"
                 ]);
             }
-            break;    
+            break;
 
         default:
-            echo json_encode([
-                "status" => "error",
-                "message" => "Invalid action"
-            ]);
+            echo json_encode(["status" => "error", "message" => "Invalid action"]);
             exit;
     }
-
 } catch (Exception $e) {
-    echo json_encode([
-        "status" => "error",
-        "message" => $e->getMessage()
-    ]);
+    echo json_encode(["status" => "error", "message" => $e->getMessage()]);
 }

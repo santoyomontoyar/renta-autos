@@ -17,28 +17,20 @@
 
 
 <div class="max-w-[1500px] mx-auto">
-    <div class="flex items-center justify-start p-4" id="btnAgregarContainer">
-        <button
-            type="button"
-            id="btnAgregar"
-            class="w-10 h-10 bg-green-500 hover:bg-green-600 text-white font-bold text-xl flex items-center justify-center rounded transition shadow"
-            title="Agregar">
-            +
-        </button>
-    </div>
     <section id="tableSection" class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-    <div class="overflow-x-auto">
+    <div id="toolbar"></div>
+    <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
 <table class="table table-zebra w-full" id="tablaModelos">
 <thead>
 
-<tr>
-    <th data-sort="id_modelo">ID</th>
-    <th data-sort="nombre_modelo">Modelo</th>
-    <th data-sort="marca">Marca</th>
-    <th data-sort="year">Año</th>
+<tr class="bg-gray-100">
+    <th>ID</th>
+    <th>Modelo</th>
+    <th>Marca</th>
+    <th>Año</th>
     <th>Categoría</th>
-    <th data-sort="costo_diario">Costo diario</th>
-    <th>acciones</th>
+    <th>Costo diario</th>
+    <th class="text-center">Acciones</th>
 </tr>
 
 </thead>
@@ -46,6 +38,7 @@
 
 </table>
 </div>
+<div id="paginacionModelos" class="mt-4"></div>
 </section>
 <section id="formSection" class="hidden mt-6">
             <h1 id="formTitle" class="text-2xl font-bold text-gray-800 mb-6 text-center">
@@ -128,7 +121,7 @@
         </section>
     </div>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script type="module" src="../js/modelo_vehiculo.js?v=3"></script>
+<script type="module" src="../js/modelo_vehiculo.js?v=6"></script>
 
 </body>
 </html>

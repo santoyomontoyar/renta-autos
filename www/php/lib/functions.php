@@ -1095,6 +1095,338 @@ function deleteImagenFalla($id_imagen) {
     }
 }
 
+/*
+ * ============================================================
+ *  Listados con búsqueda + ordenamiento (ORDER BY) + paginación
+ *  Módulos: modelo_vehiculo, reporte_falla, imagen_falla,
+ *           imagen_modelo_vehiculo
+ * ============================================================
+ */
+
+function getModelosPaginado($page = 1, $orderBy = 'id_modelo', $orderDir = 'ASC', $buscar = '', $categoria = '') {
+    global $db;
+
+    $limit = 50;
+    $page = max(1, (int)$page);
+    $offset = ($page - 1) * $limit;
+
+    $columnas = [
+        'id_modelo'     => 'id_modelo',
+        'marca'         => 'marca',
+        'nombre_modelo' => 'nombre_modelo',
+        'year'          => 'year',
+        'costo_diario'  => 'costo_diario'
+    ];
+    $columna = $columnas[$orderBy] ?? 'id_modelo';
+    $direccion = strtoupper($orderDir) === 'DESC' ? 'DESC' : 'ASC';
+
+    $condiciones = [];
+    $params = [];
+
+    if (trim($buscar) !== '') {
+        $condiciones[] = "(marca LIKE :buscar OR nombre_modelo LIKE :buscar)";
+        $params[':buscar'] = '%' . $buscar . '%';
+    }
+
+    // Filtro exacto por catálogo (dropdown), no texto libre -> WHERE categoria = :categoria
+    if (trim($categoria) !== '') {
+        $condiciones[] = "categoria = :categoria";
+        $params[':categoria'] = $categoria;
+    }
+
+    $where = count($condiciones) > 0 ? "WHERE " . implode(" AND ", $condiciones) : "";
+
+    $stmtTotal = $db->prepare("SELECT COUNT(*) FROM modelo_vehiculo $where");
+    $stmtTotal->execute($params);
+    $totalRows = (int)$stmtTotal->fetchColumn();
+
+    $stmt = $db->prepare("
+        SELECT id_modelo, nombre_modelo, marca, year, categoria, costo_diario
+        FROM modelo_vehiculo
+        $where
+        ORDER BY $columna $direccion
+        LIMIT $limit OFFSET $offset
+    ");
+    $stmt->execute($params);
+
+    return [
+        'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+        'pagination' => [
+            'page' => $page,
+            'limit' => $limit,
+            'totalRows' => $totalRows,
+            'totalPages' => max(1, (int)ceil($totalRows / $limit))
+        ]
+    ];
+}
+
+// Catálogo de categorías existentes en la BD, para llenar el <select> del filtro
+function getCategoriasModelo() {
+    global $db;
+    $stmt = $db->query("SELECT DISTINCT categoria FROM modelo_vehiculo ORDER BY categoria ASC");
+    return $stmt->fetchAll(PDO::FETCH_COLUMN);
+}
+
+function getFallasPaginado($page = 1, $orderBy = 'id_falla', $orderDir = 'ASC', $buscar = '') {
+    global $db;
+
+    $limit = 50;
+    $page = max(1, (int)$page);
+    $offset = ($page - 1) * $limit;
+
+    $columnas = [
+        'id_falla'      => 'f.id_falla',
+        'id_renta'      => 'f.id_renta',
+        'mecanico'      => 'mecanico',
+        'fecha_reporte' => 'f.fecha_reporte'
+    ];
+    $columna = $columnas[$orderBy] ?? 'f.id_falla';
+    $direccion = strtoupper($orderDir) === 'DESC' ? 'DESC' : 'ASC';
+
+    $where = '';
+    $params = [];
+    if (trim($buscar) !== '') {
+        $where = "WHERE f.descripcion LIKE :buscar
+                     OR u.nombre LIKE :buscar
+                     OR u.apellido LIKE :buscar";
+        $params[':buscar'] = '%' . $buscar . '%';
+    }
+
+    $stmtTotal = $db->prepare("
+        SELECT COUNT(*)
+        FROM reporte_falla f
+        INNER JOIN usuario u ON f.id_usuario = u.id_usuario
+        $where
+    ");
+    $stmtTotal->execute($params);
+    $totalRows = (int)$stmtTotal->fetchColumn();
+
+    $stmt = $db->prepare("
+        SELECT
+            f.id_falla,
+            f.id_renta,
+            f.id_usuario,
+            CONCAT(u.nombre, ' ', u.apellido) AS mecanico,
+            f.descripcion,
+            f.fecha_reporte
+        FROM reporte_falla f
+        INNER JOIN usuario u ON f.id_usuario = u.id_usuario
+        $where
+        ORDER BY $columna $direccion
+        LIMIT $limit OFFSET $offset
+    ");
+    $stmt->execute($params);
+
+    return [
+        'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+        'pagination' => [
+            'page' => $page,
+            'limit' => $limit,
+            'totalRows' => $totalRows,
+            'totalPages' => max(1, (int)ceil($totalRows / $limit))
+        ]
+    ];
+}
+
+function getImagenesFallaPaginado($page = 1, $orderBy = 'id_imagen', $orderDir = 'ASC', $buscar = '') {
+    global $db;
+
+    $limit = 50;
+    $page = max(1, (int)$page);
+    $offset = ($page - 1) * $limit;
+
+    $columnas = [
+        'id_imagen'          => 'i.id_imagen',
+        'falla_descripcion'  => 'f.descripcion',
+        'fecha_subida'       => 'i.fecha_subida'
+    ];
+    $columna = $columnas[$orderBy] ?? 'i.id_imagen';
+    $direccion = strtoupper($orderDir) === 'DESC' ? 'DESC' : 'ASC';
+
+    $where = '';
+    $params = [];
+    if (trim($buscar) !== '') {
+        $where = "WHERE f.descripcion LIKE :buscar";
+        $params[':buscar'] = '%' . $buscar . '%';
+    }
+
+    $stmtTotal = $db->prepare("
+        SELECT COUNT(*)
+        FROM imagen_falla i
+        INNER JOIN reporte_falla f ON i.id_falla = f.id_falla
+        $where
+    ");
+    $stmtTotal->execute($params);
+    $totalRows = (int)$stmtTotal->fetchColumn();
+
+    $stmt = $db->prepare("
+        SELECT i.id_imagen, i.id_falla, i.url_archivo, i.fecha_subida,
+               f.descripcion AS falla_descripcion
+        FROM imagen_falla i
+        INNER JOIN reporte_falla f ON i.id_falla = f.id_falla
+        $where
+        ORDER BY $columna $direccion
+        LIMIT $limit OFFSET $offset
+    ");
+    $stmt->execute($params);
+
+    return [
+        'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+        'pagination' => [
+            'page' => $page,
+            'limit' => $limit,
+            'totalRows' => $totalRows,
+            'totalPages' => max(1, (int)ceil($totalRows / $limit))
+        ]
+    ];
+}
+
+function getImagenesModeloPaginado($page = 1, $orderBy = 'id_imagen', $orderDir = 'ASC', $buscar = '') {
+    global $db;
+
+    $limit = 50;
+    $page = max(1, (int)$page);
+    $offset = ($page - 1) * $limit;
+
+    $columnas = [
+        'id_imagen'    => 'img.id_imagen',
+        'marca'        => 'm.marca',
+        'es_principal' => 'img.es_principal'
+    ];
+    $columna = $columnas[$orderBy] ?? 'img.id_imagen';
+    $direccion = strtoupper($orderDir) === 'DESC' ? 'DESC' : 'ASC';
+
+    $where = '';
+    $params = [];
+    if (trim($buscar) !== '') {
+        $where = "WHERE m.marca LIKE :buscar OR m.nombre_modelo LIKE :buscar";
+        $params[':buscar'] = '%' . $buscar . '%';
+    }
+
+    $stmtTotal = $db->prepare("
+        SELECT COUNT(*)
+        FROM imagen_modelo_vehiculo img
+        INNER JOIN modelo_vehiculo m ON img.id_modelo = m.id_modelo
+        $where
+    ");
+    $stmtTotal->execute($params);
+    $totalRows = (int)$stmtTotal->fetchColumn();
+
+    $stmt = $db->prepare("
+        SELECT img.id_imagen, img.id_modelo, img.url_archivo, img.es_principal,
+               m.marca, m.nombre_modelo, m.year
+        FROM imagen_modelo_vehiculo img
+        INNER JOIN modelo_vehiculo m ON img.id_modelo = m.id_modelo
+        $where
+        ORDER BY $columna $direccion
+        LIMIT $limit OFFSET $offset
+    ");
+    $stmt->execute($params);
+
+    return [
+        'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+        'pagination' => [
+            'page' => $page,
+            'limit' => $limit,
+            'totalRows' => $totalRows,
+            'totalPages' => max(1, (int)ceil($totalRows / $limit))
+        ]
+    ];
+}
+
+/*
+ * ============================================================
+ *  Estadísticas para el Dashboard (solo de mis módulos)
+ * ============================================================
+ */
+
+function getStatsModelosPorCategoria() {
+    global $db;
+    $stmt = $db->query("
+        SELECT categoria, COUNT(*) AS total
+        FROM modelo_vehiculo
+        GROUP BY categoria
+        ORDER BY total DESC
+    ");
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getStatsFallasPorMes() {
+    global $db;
+    $stmt = $db->query("
+        SELECT DATE_FORMAT(fecha_reporte, '%Y-%m') AS mes, COUNT(*) AS total
+        FROM reporte_falla
+        GROUP BY mes
+        ORDER BY mes ASC
+    ");
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getStatsFallasResumenMes() {
+    global $db;
+
+    $esteMes = $db->query("
+        SELECT COUNT(*) FROM reporte_falla
+        WHERE DATE_FORMAT(fecha_reporte, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+    ")->fetchColumn();
+
+    $mesPasado = $db->query("
+        SELECT COUNT(*) FROM reporte_falla
+        WHERE DATE_FORMAT(fecha_reporte, '%Y-%m') = DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m')
+    ")->fetchColumn();
+
+    $total = $db->query("SELECT COUNT(*) FROM reporte_falla")->fetchColumn();
+
+    return [
+        'este_mes'   => (int)$esteMes,
+        'mes_pasado' => (int)$mesPasado,
+        'total'      => (int)$total
+    ];
+}
+
+function getStatsTopMecanicos() {
+    global $db;
+    $stmt = $db->query("
+        SELECT CONCAT(u.nombre, ' ', u.apellido) AS mecanico, COUNT(*) AS total
+        FROM reporte_falla f
+        INNER JOIN usuario u ON f.id_usuario = u.id_usuario
+        GROUP BY f.id_usuario
+        ORDER BY total DESC
+        LIMIT 5
+    ");
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getStatsImagenesPorTipo() {
+    global $db;
+    $stmt = $db->query("
+        SELECT
+            SUM(CASE WHEN es_principal = 1 THEN 1 ELSE 0 END) AS principales,
+            SUM(CASE WHEN es_principal = 0 THEN 1 ELSE 0 END) AS galeria
+        FROM imagen_modelo_vehiculo
+    ");
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return [
+        'principales' => (int)($row['principales'] ?? 0),
+        'galeria'     => (int)($row['galeria'] ?? 0)
+    ];
+}
+
+function getStatsFallasConEvidencia() {
+    global $db;
+
+    $conFoto = $db->query("
+        SELECT COUNT(DISTINCT id_falla) FROM imagen_falla
+    ")->fetchColumn();
+
+    $total = $db->query("SELECT COUNT(*) FROM reporte_falla")->fetchColumn();
+
+    return [
+        'con_evidencia' => (int)$conFoto,
+        'sin_evidencia' => max(0, (int)$total - (int)$conFoto)
+    ];
+}
+
 function getAllFallasConMecanico() {
     global $db;
 

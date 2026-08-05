@@ -2,20 +2,17 @@ import form from './imagen_falla/form.js';
 import renderImagenes from './imagen_falla/renders.js';
 import views, { clearForm } from './imagen_falla/views.js';
 
-import {
-    ordenarDatos,
-    paginar,
-    renderControlesPaginacion,
-    wireSortableHeaders
-} from './imagen_falla_paginacion.js';
+import { renderToolbar } from './lib/toolbar.js?v=2';
+import { renderPagination } from './lib/pagination_ui.js?v=2';
+
+const CAMPOS_ORDEN = [
+    { value: "id_imagen", label: "ID" },
+    { value: "falla_descripcion", label: "Falla" },
+    { value: "fecha_subida", label: "Fecha de subida" }
+];
 
 let fallas = [];
-let imagenesData = [];
-
-const POR_PAGINA = 50;
-let paginaActual = 1;
-let campoOrden = null;
-let direccionOrden = "asc";
+let estado = { page: 1, orderBy: "id_imagen", orderDir: "ASC", buscar: "" };
 
 async function post(action, extra = {}) {
     const res = await fetch("../php/imagen_falla.php", {
@@ -27,51 +24,26 @@ async function post(action, extra = {}) {
 }
 
 async function cargarImagenes() {
-    const json = await post("getAll");
+    const tbody = document.querySelector("#tbody");
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-400">Cargando registros...</td></tr>`;
 
-    imagenesData =
-        (json.status === "success" && Array.isArray(json.data))
-            ? json.data
-            : [];
+    const json = await post("getAll", {
+        page: estado.page,
+        order_by: estado.orderBy,
+        order_dir: estado.orderDir,
+        buscar: estado.buscar
+    });
 
-    renderTabla();
-}
-
-function renderTabla() {
-
-    let datos = [...imagenesData];
-
-    if (campoOrden) {
-        datos = ordenarDatos(datos, campoOrden, direccionOrden);
+    if (json.status !== "success") {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-red-500 py-4">Error al cargar las imágenes.</td></tr>`;
+        return;
     }
 
-    const totalPag = Math.max(
-        1,
-        Math.ceil(datos.length / POR_PAGINA)
-    );
-
-    if (paginaActual > totalPag) {
-        paginaActual = totalPag;
-    }
-
-    const datosPagina = paginar(
-        datos,
-        paginaActual,
-        POR_PAGINA
-    );
-
-    renderImagenes(datosPagina);
-
-    renderControlesPaginacion(
-        "paginacionImagenFalla",
-        paginaActual,
-        datos.length,
-        POR_PAGINA,
-        (nuevaPagina) => {
-            paginaActual = nuevaPagina;
-            renderTabla();
-        }
-    );
+    renderImagenes(json.data);
+    renderPagination("paginacionImagenFalla", json.pagination, "imágenes", (pagina) => {
+        estado.page = pagina;
+        cargarImagenes();
+    });
 }
 
 async function cargarFallas() {
@@ -80,11 +52,6 @@ async function cargarFallas() {
 }
 
 function wireEvents() {
-    document.querySelector("#addBtn").addEventListener("click", () => {
-        clearForm();
-        views();
-    });
-
     document.querySelector("#tbody").addEventListener("click", (e) => {
         const id = e.target.dataset.id;
         if (e.target.classList.contains("editBtn")) editarImagen(id);
@@ -96,11 +63,13 @@ function wireEvents() {
         if (e.target.id === "saveBtn") guardarImagen();
     });
 
-    wireSortableHeaders("#tablaImagenFalla thead", (campo, direccion) => {
-    campoOrden = campo;
-    direccionOrden = direccion;
-    paginaActual = 1;
-    renderTabla();
+    renderToolbar("toolbar", CAMPOS_ORDEN, {
+        placeholderBusqueda: "Buscar por descripción de la falla...",
+        boton: { label: "+ Agregar Imagen", onClick: () => { clearForm(); views(); } },
+        onChange: ({ buscar, orderBy, orderDir }) => {
+            estado = { ...estado, buscar, orderBy, orderDir, page: 1 };
+            cargarImagenes();
+        }
     });
 }
 
@@ -154,6 +123,7 @@ async function eliminarImagen(id) {
     const json = await post("delete", { id_imagen: id });
     if (json.status === "success") {
         Swal.fire("Eliminada", "La imagen fue eliminada", "success");
+        estado.page = 1;
         cargarImagenes();
     } else {
         Swal.fire("Error", json.message, "error");
@@ -161,7 +131,8 @@ async function eliminarImagen(id) {
 }
 
 (async function init() {
-    await Promise.all([cargarFallas(), cargarImagenes()]);
+    await cargarFallas();
     document.querySelector("#formContainer").innerHTML = form(fallas);
     wireEvents();
+    await cargarImagenes();
 })();

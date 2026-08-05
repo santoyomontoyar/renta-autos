@@ -1,54 +1,60 @@
 <?php
-
+header('Content-Type: application/json; charset=utf-8');
 require_once 'lib/functions.php';
 
 $_post = json_decode(file_get_contents('php://input'), true);
 $action = $_post['action'] ?? "";
-$data = "";
 
-switch($action){
+global $db;
+
+switch ($action) {
 
     case 'getAll':
+        $page      = $_post['page'] ?? 1;
+        $orderBy   = $_post['order_by'] ?? 'id_modelo';
+        $orderDir  = $_post['order_dir'] ?? 'ASC';
+        $buscar    = $_post['buscar'] ?? '';
+        $categoria = $_post['categoria'] ?? '';
+
+        $resultado = getModelosPaginado($page, $orderBy, $orderDir, $buscar, $categoria);
+        echo json_encode([
+            "status" => "success",
+            "data" => $resultado['data'],
+            "pagination" => $resultado['pagination']
+        ]);
+        break;
+
+    case 'getCategorias':
+        $data = getCategoriasModelo();
+        echo json_encode(["status" => "success", "data" => $data]);
+        break;
+
+    case 'getAllForSelect':
+        // Usado para llenar el <select> de modelos en otros formularios (sin paginar)
         $data = getAllModelos();
-    break;
+        echo json_encode(["status" => "success", "data" => $data]);
+        break;
 
     case 'getOne':
         $data = getOneModelo($_post['id_modelo']);
-    break;
+        echo json_encode(["status" => $data ? "success" : "error", "data" => $data]);
+        break;
 
     case 'insert':
-        $data = insertModelo($_post);
-    break;
+        $ok = insertModelo($_post);
+        echo json_encode(["status" => $ok ? "success" : "error"]);
+        break;
 
     case 'update':
-        $data = updateModelo($_post);
-    break;
+        $ok = updateModelo($_post);
+        echo json_encode(["status" => $ok ? "success" : "error"]);
+        break;
 
     case 'delete':
-        $data = deleteModelo($_post['id_modelo']);
-    break;
+        $ok = deleteModelo($_post['id_modelo']);
+        echo json_encode(["status" => $ok ? "success" : "error"]);
+        break;
+
     default:
-        echo json_encode([
-            "status"=>"error",
-            "message"=>"Invalid action"
-        ]);
-        exit;
-
+        echo json_encode(["status" => "error", "message" => "Invalid action"]);
 }
-
-if($data){
-
-    echo json_encode([
-        "status"=>"success",
-        "data"=>$data
-
-    ]);
-
-}else{
-    echo json_encode([
-        "status"=>"error",
-        "message"=>"Failed"
-    ]);
-
-}
-?>
