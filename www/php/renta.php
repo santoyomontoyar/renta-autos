@@ -1,8 +1,14 @@
 <?php
+header('Content-Type: application/json; charset=utf-8');
 require_once 'lib/functions.php';
+require_once 'lib/auth.php';
 
 $_post = json_decode(file_get_contents('php://input'), true);
 $action = $_post['action'] ?? '';
+
+// Un Cliente solo puede consultar/crear sus propias rentas; editar o borrar
+// cualquier renta sigue siendo exclusivo de Administrador.
+requireAccion($action, ['Administrador', 'Cliente'], ['update', 'delete'], ['Administrador']);
 
 switch ($action) {
   case 'getAll':
@@ -11,8 +17,9 @@ switch ($action) {
     $sortColumn    = $_post['sortColumn'] ?? 'id_renta';
     $sortDirection = $_post['sortDirection'] ?? 'ASC';
     $search        = $_post['search'] ?? '';
+    $idClienteFiltro = esRol('Cliente') ? getIdClienteSesion() : null;
 
-    $result = getAllRentas($page, $pageSize, $sortColumn, $sortDirection, $search);
+    $result = getAllRentas($page, $pageSize, $sortColumn, $sortDirection, $search, $idClienteFiltro);
     echo json_encode([
         'status' => 'success',
         'data'   => $result['data'],
@@ -31,7 +38,26 @@ switch ($action) {
     exit;
 
   case 'insert':
-    $result = insertRenta($_post['datos']);
+    $datos = $_post['datos'] ?? [];
+
+    if (esRol('Cliente')) {
+        // El cliente nunca puede rentar "a nombre" de otro: se ignora
+        // cualquier id_cliente mandado desde el front y se usa el de su sesión.
+        $idClienteSesion = getIdClienteSesion();
+        if ($idClienteSesion === null) {
+            echo json_encode(['status' => 'error', 'message' => 'Tu usuario no tiene un perfil de cliente asociado']);
+            exit;
+        }
+        $datos['id_cliente'] = $idClienteSesion;
+
+        // Regla de negocio: un cliente solo puede tener un auto rentado a la vez.
+        if (clienteTieneRentaActiva($idClienteSesion)) {
+            echo json_encode(['status' => 'error', 'message' => 'Ya tienes una renta activa. Debes finalizarla antes de solicitar otra.']);
+            exit;
+        }
+    }
+
+    $result = insertRenta($datos);
     if ($result) {
       echo json_encode(['status' => 'success', 'message' => 'Renta registrada exitosamente']);
     } else {
@@ -41,6 +67,9 @@ switch ($action) {
 
     case 'getOne':
     $data = getRentaById($_post['id_renta']);
+    if ($data) {
+        requireClientePropio((int)$data['id_cliente']);
+    }
     echo json_encode($data
         ? ['status' => 'success', 'data' => $data]
         : ['status' => 'error', 'message' => 'Renta no encontrada']);

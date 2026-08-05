@@ -29,7 +29,8 @@ async function cargarVehiculos() {
         const json = await res.json();
 
         if (json.status === "success") {
-            renderVehiculo(json.data);
+            const puedeEditar = window.esAdmin();
+            renderVehiculo(json.data, puedeEditar);
             renderPagination(json.pagination);
         } else {
             tbody.innerHTML = `<tr><td colspan="9" class="text-center text-red-500 py-4">Error al cargar vehículos.</td></tr>`;
@@ -316,12 +317,32 @@ function actualizarCascada() {
     }
 }
 
-(async function init() {
-    cargarVehiculos();
-    await Promise.all([cargarModelos(), cargarSucursales()]);
-    const formContainer = document.querySelector("#formContainer");
-    if (formContainer) {
-        formContainer.innerHTML = form(modelos, sucursales);
+async function alListo() {
+    const esAdmin = window.esAdmin();
+    if (esAdmin) {
+        await Promise.all([cargarModelos(), cargarSucursales()]);
+        const formContainer = document.querySelector("#formContainer");
+        if (formContainer) {
+            formContainer.innerHTML = form(modelos, sucursales);
+        }
+    } else {
+        // Cliente y Mecánico solo consultan el catálogo: sin alta/edición.
+        document.querySelector("#addBtn")?.remove();
     }
+    cargarVehiculos();
+}
+
+(function init() {
     wireEvents();
+
+    // Si session.js ya terminó de verificar la sesión antes de que este
+    // módulo (y sus imports: form.js, renders.js, views.js, ui.js) acabaran
+    // de cargar, el evento "sesionLista" ya se disparó y nunca lo vamos a
+    // alcanzar a escuchar. Por eso primero checamos si window.currentUser
+    // ya quedó listo, y si no, ahí sí esperamos el evento.
+    if (window.currentUser) {
+        alListo();
+    } else {
+        document.addEventListener("sesionLista", alListo);
+    }
 })();

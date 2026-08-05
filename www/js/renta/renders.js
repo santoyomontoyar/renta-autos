@@ -1,5 +1,16 @@
-export default function renderRenta(rentas) {
+import { soloLectura } from '../lib/ui.js';
+
+// puedeEditar: solo un Administrador edita/cancela rentas ya creadas.
+// Un Cliente ve su(s) renta(s) en modo solo-lectura.
+export default function renderRenta(rentas, puedeEditar = false) {
     const tbody = document.querySelector("#tbody");
+    const acciones = puedeEditar
+        ? r => `<div class="flex gap-2">
+              <a href="editar.html?id=${r.id_renta}" class="btn btn-sm mr-2 btn-warning text-white font-semibold">Editar</a>
+              <button data-id="${r.id_renta}" class="deleteBtn btn btn-sm mr-2 btn-error text-white font-semibold">Eliminar</button>
+            </div>`
+        : soloLectura;
+
     tbody.innerHTML = rentas.map(r => `
         <tr>
           <td>${r.id_renta}</td>
@@ -14,12 +25,7 @@ export default function renderRenta(rentas) {
           <td>${r.estado_deposito}</td>
           <td>$${r.precio_cobrado}</td>
           <td>${r.estado}</td>
-          <td>
-            <div class="flex gap-2">
-              <a href="editar.html?id=${r.id_renta}" class="btn btn-sm mr-2 btn-warning text-white font-semibold">Editar</a>
-              <button data-id="${r.id_renta}" class="deleteBtn btn btn-sm mr-2 btn-error text-white font-semibold">Eliminar</button>
-            </div>
-          </td>
+          <td>${acciones(r)}</td>
         </tr>
     `).join('');
 }

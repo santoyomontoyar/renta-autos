@@ -46,7 +46,7 @@ async function cargarTabla() {
 
 renderToolbar('toolbar', CAMPOS_ORDEN, {
     placeholderBusqueda: 'Buscar por mecánico o descripción...',
-    boton: { label: '+ Agregar', onClick: () => { views(); clearForm(); idEditar = null; } },
+    boton: { label: '+ Agregar', onClick: () => { views(true); clearForm(); idEditar = null; } },
     onChange: ({ buscar, orderBy, orderDir }) => {
         estado = { ...estado, buscar, orderBy, orderDir, page: 1 };
         cargarTabla();
@@ -56,7 +56,7 @@ renderToolbar('toolbar', CAMPOS_ORDEN, {
 cargarTabla();
 
 listBtn.addEventListener('click', function () {
-    views();
+    views(false);
 });
 
 table.addEventListener('click', async function (e) {
@@ -70,7 +70,7 @@ table.addEventListener('click', async function (e) {
         id_renta.value = falla.id_renta;
         id_usuario.value = falla.id_usuario;
         descripcion.value = falla.descripcion;
-        views();
+        views(true);
     }
 
     if (e.target.classList.contains('deleteBtn')) {

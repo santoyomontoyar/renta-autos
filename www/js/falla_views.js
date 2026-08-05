@@ -1,15 +1,17 @@
 const table = document.querySelector('#table');
+const toolbar = document.querySelector('#toolbar');
+const paginacion = document.querySelector('#paginacionFallas');
 const formArea = document.querySelector('#formArea');
-const addForm = document.querySelector('#addForm');
 const listBtn = document.querySelector('#listBtn');
- 
-export default function views() {
-    table.classList.toggle('hidden');
-    formArea.classList.toggle('hidden');
-    addForm.classList.toggle('hidden');
-    listBtn.classList.toggle('hidden');
+
+export default function views(mostrarFormulario) {
+    table.classList.toggle('hidden', mostrarFormulario);
+    toolbar.classList.toggle('hidden', mostrarFormulario);
+    paginacion.classList.toggle('hidden', mostrarFormulario);
+    formArea.classList.toggle('hidden', !mostrarFormulario);
+    listBtn.classList.toggle('hidden', !mostrarFormulario);
 }
- 
+
 export function clearForm() {
     const id_renta = document.querySelector('#id_renta');
     const id_usuario = document.querySelector('#id_usuario');

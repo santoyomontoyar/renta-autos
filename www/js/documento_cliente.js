@@ -28,7 +28,8 @@ async function cargarDocumentos() {
         const json = await res.json();
 
         if (json.status === "success") {
-            renderDocumento(json.data);
+            const puedeEditar = window.esAdmin();
+            renderDocumento(json.data, puedeEditar);
             renderPagination(json.pagination);
         } else {
             tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 py-4">Error al cargar documentos.</td></tr>`;
@@ -236,8 +237,22 @@ async function eliminarDocumento(id) {
     }
 }
 
-(function init() {
+function aplicarPermisosDeRol() {
+    const esAdmin = window.esAdmin();
+    if (esAdmin) {
+        cargarClientesForSelect();
+    } else {
+        // Un Cliente solo consulta sus documentos: no hay alta desde este módulo.
+        document.querySelector("#addBtn")?.remove();
+    }
     cargarDocumentos();
-    cargarClientesForSelect();
+}
+
+(function init() {
     wireEvents();
+    if (window.currentUser) {
+        aplicarPermisosDeRol();
+    } else {
+        document.addEventListener("sesionLista", aplicarPermisosDeRol);
+    }
 })();
