@@ -2,9 +2,12 @@
 header('Content-Type: application/json; charset=utf-8');
 
 require_once 'lib/functions.php';
+require_once 'lib/auth.php';
 
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $input['action'] ?? '';
+
+requireAuth(['Administrador']);
 
 switch ($action) {
     case 'getAll':

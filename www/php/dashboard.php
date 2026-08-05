@@ -1,9 +1,12 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 require_once 'lib/functions.php';
+require_once 'lib/auth.php';
 
 $_post = json_decode(file_get_contents('php://input'), true);
 $action = $_post['action'] ?? '';
+
+requireAuth(['Administrador', 'Mecánico']);
 
 switch ($action) {
     case 'getStats':

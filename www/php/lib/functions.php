@@ -3,14 +3,17 @@ require_once 'db.php';
 function login($email, $password)
 {
   global $db;
-  $stmt = $db->prepare("SELECT * FROM usuario WHERE correo = :email");
+  $stmt = $db->prepare("SELECT u.*, r.nombre AS rol
+                       FROM usuario u INNER JOIN rol r ON u.id_rol = r.id_rol
+                       WHERE u.correo = :email");
   $stmt->bindParam(':email', $email);
   $stmt->execute();
   $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
   if ($user && password_verify($password, $user['password'])) {
+    unset($user['password']);
     return $user;
-  }
+}
   return false;
 }
 function getAllUsuarios() {
@@ -184,7 +187,7 @@ function deleteVehiculo($id) {
     }
 }
 
-function getAllRentas($page = 1, $pageSize = 10, $sortColumn = 'id_renta', $sortDirection = 'ASC', $search = '') {
+function getAllRentas($page = 1, $pageSize = 10, $sortColumn = 'id_renta', $sortDirection = 'ASC', $search = '', $idClienteFiltro = null) {
     global $db;
        $columnasPermitidas = [
         'id_renta'         => 'r.id_renta',
@@ -211,16 +214,22 @@ function getAllRentas($page = 1, $pageSize = 10, $sortColumn = 'id_renta', $sort
         JOIN sucursal so ON r.id_sucursal_origen = so.id_sucursal
         JOIN sucursal sd ON r.id_sucursal_destino = sd.id_sucursal";
 
-    $whereSql = '';
+    $condiciones = [];
     $params = [];
     if (trim($search) !== '') {
-        $whereSql = "WHERE (
+        $condiciones[] = "(
             CAST(r.id_renta AS CHAR) LIKE :search
             OR CONCAT(u.nombre, ' ', u.apellido) LIKE :search
             OR so.nombre LIKE :search
             OR sd.nombre LIKE :search)";
         $params[':search'] = '%' . $search . '%';
     }
+    // Cuando la petición viene de un Cliente, se restringe a sus propias rentas.
+    if ($idClienteFiltro !== null) {
+        $condiciones[] = "r.id_cliente = :id_cliente_filtro";
+        $params[':id_cliente_filtro'] = $idClienteFiltro;
+    }
+    $whereSql = count($condiciones) > 0 ? 'WHERE ' . implode(' AND ', $condiciones) : '';
 
     $stmtCount = $db->prepare("SELECT COUNT(*) AS total $joins $whereSql");
     foreach ($params as $key => $val) {
@@ -617,6 +626,18 @@ function insertar_falla($datos) {
     return false;
 }
 
+
+/** id_usuario (mecánico) dueño de un reporte de falla, o null si no existe. */
+function getIdUsuarioDeFalla($id_falla) {
+    global $db;
+    $stmt = $db->prepare("SELECT id_usuario FROM reporte_falla WHERE id_falla = :id");
+    $stmt->execute([':id' => $id_falla]);
+    $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $fila ? (int)$fila['id_usuario'] : null;
+}
+
+
+
 function actualizarFalla($id_falla, $id_renta, $id_usuario, $descripcion) {
     global $db;
 
@@ -677,6 +698,19 @@ function insertUsuarios($datos){
 
     return false;
 }
+
+
+function clienteTieneRentaActiva($id_cliente) {
+    global $db;
+    $stmt = $db->prepare("
+        SELECT COUNT(*) FROM renta
+        WHERE id_cliente = :id_cliente
+          AND estado NOT IN ('Finalizada', 'Cancelada')
+    ");
+    $stmt->execute([':id_cliente' => $id_cliente]);
+    return (int)$stmt->fetchColumn() > 0;
+}
+
 
 function insertRenta($datos) {
     global $db;
@@ -1167,7 +1201,7 @@ function getCategoriasModelo() {
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-function getFallasPaginado($page = 1, $orderBy = 'id_falla', $orderDir = 'ASC', $buscar = '') {
+function getFallasPaginado($page = 1, $orderBy = 'id_falla', $orderDir = 'ASC', $buscar = '', $idUsuarioFiltro = null) {
     global $db;
 
     $limit = 50;
@@ -1183,14 +1217,20 @@ function getFallasPaginado($page = 1, $orderBy = 'id_falla', $orderDir = 'ASC', 
     $columna = $columnas[$orderBy] ?? 'f.id_falla';
     $direccion = strtoupper($orderDir) === 'DESC' ? 'DESC' : 'ASC';
 
-    $where = '';
+    $condiciones = [];
     $params = [];
     if (trim($buscar) !== '') {
-        $where = "WHERE f.descripcion LIKE :buscar
+        $condiciones[] = "(f.descripcion LIKE :buscar
                      OR u.nombre LIKE :buscar
-                     OR u.apellido LIKE :buscar";
+                     OR u.apellido LIKE :buscar)";
         $params[':buscar'] = '%' . $buscar . '%';
     }
+    // Un Mecánico solo ve los reportes de falla que él mismo capturó.
+    if ($idUsuarioFiltro !== null) {
+        $condiciones[] = "f.id_usuario = :id_usuario_filtro";
+        $params[':id_usuario_filtro'] = $idUsuarioFiltro;
+    }
+    $where = count($condiciones) > 0 ? 'WHERE ' . implode(' AND ', $condiciones) : '';
 
     $stmtTotal = $db->prepare("
         SELECT COUNT(*)
@@ -1228,7 +1268,7 @@ function getFallasPaginado($page = 1, $orderBy = 'id_falla', $orderDir = 'ASC', 
     ];
 }
 
-function getImagenesFallaPaginado($page = 1, $orderBy = 'id_imagen', $orderDir = 'ASC', $buscar = '') {
+function getImagenesFallaPaginado($page = 1, $orderBy = 'id_imagen', $orderDir = 'ASC', $buscar = '', $idUsuarioFiltro = null) {
     global $db;
 
     $limit = 50;
@@ -1243,12 +1283,18 @@ function getImagenesFallaPaginado($page = 1, $orderBy = 'id_imagen', $orderDir =
     $columna = $columnas[$orderBy] ?? 'i.id_imagen';
     $direccion = strtoupper($orderDir) === 'DESC' ? 'DESC' : 'ASC';
 
-    $where = '';
+    $condiciones = [];
     $params = [];
     if (trim($buscar) !== '') {
-        $where = "WHERE f.descripcion LIKE :buscar";
+        $condiciones[] = "f.descripcion LIKE :buscar";
         $params[':buscar'] = '%' . $buscar . '%';
     }
+    // Un Mecánico solo ve imágenes de las fallas que él reportó.
+    if ($idUsuarioFiltro !== null) {
+        $condiciones[] = "f.id_usuario = :id_usuario_filtro";
+        $params[':id_usuario_filtro'] = $idUsuarioFiltro;
+    }
+    $where = count($condiciones) > 0 ? 'WHERE ' . implode(' AND ', $condiciones) : '';
 
     $stmtTotal = $db->prepare("
         SELECT COUNT(*)
