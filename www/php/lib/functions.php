@@ -214,7 +214,7 @@ function getAllRentas() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function getAllTipoSeguro($ordenarPor = 'id_tipo_seguro', $direccion = 'ASC') {
+function getAllTipoSeguro($ordenarPor = 'id_tipo_seguro', $direccion = 'ASC', $busqueda = '') {
     global $db;
 
     $columnasPermitidas = [
@@ -226,12 +226,22 @@ function getAllTipoSeguro($ordenarPor = 'id_tipo_seguro', $direccion = 'ASC') {
     $columna = $columnasPermitidas[$ordenarPor] ?? 'id_tipo_seguro';
     $direccion = strtoupper($direccion) === 'DESC' ? 'DESC' : 'ASC';
 
-    $stmt = $db->prepare("
-        SELECT id_tipo_seguro, nombre, descripcion
-        FROM tipo_seguro
-        ORDER BY $columna $direccion
-    ");
-    $stmt->execute();
+   $sql = "SELECT id_tipo_seguro, nombre, descripcion FROM tipo_seguro";
+
+    if ($busqueda !== '') {
+        $sql .= " WHERE CONCAT_WS(' ', nombre, descripcion) LIKE :busqueda";
+    }
+    
+    $sql .= " ORDER BY $columna $direccion";
+    
+    $stmt = $db->prepare($sql);
+    
+    if ($busqueda !== '') {
+        $like = "%$busqueda%";
+        $stmt->bindParam(':busqueda', $like);
+    }
+
+$stmt->execute();
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }

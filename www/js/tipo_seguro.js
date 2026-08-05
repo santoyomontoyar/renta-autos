@@ -12,26 +12,39 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("formTipoSeguro");
     const tbody = document.getElementById("tbody");
     const ordenTipoSeguro = document.getElementById("ordenTipoSeguro");
+    const buscarTipoSeguro = document.getElementById("buscarTipoSeguro");
+
+
+    let ordenarPor = "id_tipo_seguro";
+    let direccion = "ASC";
+    let debounceTimer;
 
     btnAgregar.addEventListener("click", abrirFormularioAgregar);
     btnCancelarAgregar.addEventListener("click", cerrarFormulario);
     form.addEventListener("submit", guardarTipoSeguro);
     tbody.addEventListener("click", manejarAccionesTabla);
 
-    ordenTipoSeguro.addEventListener("change", () => {   // <-- NUEVO
+    ordenTipoSeguro.addEventListener("change", () => {
         const [ordenarPor, direccion] = ordenTipoSeguro.value.split("-");
-        cargarTiposSeguro(ordenarPor, direccion);
+        cargarTiposSeguro(ordenarPor, direccion, buscarTipoSeguro.value.trim());
+    });
+
+    buscarTipoSeguro.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        cargarTiposSeguro(ordenarPor, direccion, buscarTipoSeguro.value.trim());
+    }, 300);
     });
 
     cargarTiposSeguro();
     mostrarVistaTabla();
 });
 
-async function cargarTiposSeguro(ordenarPor = "id_tipo_seguro", direccion = "ASC") {
+async function cargarTiposSeguro(ordenarPor = "id_tipo_seguro", direccion = "ASC", busqueda = "") {
     const tbody = document.getElementById("tbody");
 
     try {
-        const json = await getAllTipoSeguro(ordenarPor, direccion);
+        const json = await getAllTipoSeguro(ordenarPor, direccion , busqueda);
 
         if (json.status === "success" && Array.isArray(json.data) && json.data.length > 0) {
             tbody.innerHTML = json.data.map(d => `
