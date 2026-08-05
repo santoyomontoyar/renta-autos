@@ -8,13 +8,12 @@ $data = "";
 
 switch ($action) {
     case 'getAll':
-        $data = getAllSeguros();
-        $ordenarPor = $_post['ordenarPor'] ?? 'id_seguro';
-        $direccion = $_post['direccion'] ?? 'ASC';
+        $ordenarPor = $_post['ordenarPor'];
+        $direccion = $_post['direccion'];
         $data = getAllSeguros($ordenarPor, $direccion);
         break;
         case 'getOne':
-        $data = getSeguroById($_post['id'] ?? 0);
+        $data = getSeguroById($_post['id']);
         break;
         case 'insert':
         $data = insertSeguro($_post);
@@ -23,7 +22,7 @@ switch ($action) {
         $data = updateSeguro($_post);
         break;
         case 'delete':
-        $data = deleteSeguro($_post['id'] ?? 0);
+        $data = deleteSeguro($_post['id']);
         break;
         default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);

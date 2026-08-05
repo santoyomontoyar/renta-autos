@@ -35,11 +35,11 @@ switch ($action) {
 
             if ($orderByParam === 'rol_prioridad') {
                 if ($rolPrioridad === 'ADMIN_PRIMERO') {
-                    $orderClause = "ORDER BY CASE r.nombre WHEN 'Administrador' THEN 1 WHEN 'Cliente' THEN 2 ELSE 3 END ASC, u.id_usuario ASC";
+                    $orderClause = "ORDER BY CASE r.nombre WHEN 'Administrador' THEN 1 ELSE 3 END ASC, u.id_rol ASC";
                 } elseif ($rolPrioridad === 'MECANICO_PRIMERO') {
-                    $orderClause = "ORDER BY CASE r.nombre WHEN 'Mecánico' THEN 1 WHEN 'Cliente' THEN 2 ELSE 3 END ASC, u.id_usuario ASC";
+                    $orderClause = "ORDER BY CASE r.nombre WHEN 'Mecánico' THEN 1 ELSE 3 END ASC, u.id_rol ASC";
                 } else { // CLIENTE_PRIMERO
-                    $orderClause = "ORDER BY CASE r.nombre WHEN 'Cliente' THEN 1 WHEN 'Administrador' THEN 2 ELSE 3 END ASC, u.id_usuario ASC";
+                    $orderClause = "ORDER BY CASE r.nombre WHEN 'Cliente' THEN 1 ELSE 3 END ASC, u.id_rol ASC";
                 }
             } elseif ($orderByParam === 'u.nombre') {
                 $orderClause = "ORDER BY u.nombre $orderDirParam, u.id_usuario ASC";
