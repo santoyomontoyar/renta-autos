@@ -15,7 +15,26 @@ switch ($action) {
             if ($page < 1) $page = 1;
             $offset = ($page - 1) * $limit;
 
-            $totalRows = (int)$db->query("SELECT COUNT(*) FROM cliente")->fetchColumn();
+           
+            $search = trim($_post['search'] ?? '');
+            $whereClause = "";
+            $params = array();
+
+            if ($search !== '') {
+                $whereClause = "WHERE u.nombre LIKE :search 
+                                OR u.apellido LIKE :search 
+                                OR u.correo LIKE :search 
+                                OR u.telefono LIKE :search";
+                $params[':search'] = "%$search%";
+            }
+
+            
+            $countSql = "SELECT COUNT(*) FROM cliente c INNER JOIN usuario u ON c.id_usuario = u.id_usuario $whereClause";
+            $stmtCount = $db->prepare($countSql);
+            $stmtCount->execute($params);
+            $totalRows = (int)$stmtCount->fetchColumn();
+            
+
             $totalPages = (int)ceil($totalRows / $limit);
 
             $orderByParam = $_post['order_by'] ?? 'c.id_cliente';
@@ -24,11 +43,11 @@ switch ($action) {
 
             if ($orderByParam === 'estado_prioridad') {
                 if ($estadoPrioridad === 'INACTIVO_PRIMERO') {
-                    $orderClause = "ORDER BY CASE u.estado WHEN 'Inactivo' THEN 1 WHEN 'Suspendido' THEN 2 ELSE 3 END ASC, c.id_cliente ASC";
+                    $orderClause = "ORDER BY CASE u.estado WHEN 'Inactivo' THEN 1 ELSE 3 END ASC, c.id_cliente ASC";
                 } elseif ($estadoPrioridad === 'SUSPENDIDO_PRIMERO') {
-                    $orderClause = "ORDER BY CASE u.estado WHEN 'Suspendido' THEN 1 WHEN 'Activo' THEN 2 ELSE 3 END ASC, c.id_cliente ASC";
+                    $orderClause = "ORDER BY CASE u.estado WHEN 'Suspendido' THEN 1 ELSE 3 END ASC, c.id_cliente ASC";
                 } else { 
-                    $orderClause = "ORDER BY CASE u.estado WHEN 'Activo' THEN 1 WHEN 'Inactivo' THEN 2 ELSE 3 END ASC, c.id_cliente ASC";
+                    $orderClause = "ORDER BY CASE u.estado WHEN 'Activo' THEN 1 ELSE 3 END ASC, c.id_cliente ASC";
                 }
             } elseif ($orderByParam === 'u.nombre') {
                 $orderClause = "ORDER BY u.nombre $orderDirParam, c.id_cliente ASC";
@@ -46,10 +65,13 @@ switch ($action) {
                         u.estado 
                     FROM cliente c 
                     INNER JOIN usuario u ON c.id_usuario = u.id_usuario 
+                    $whereClause 
                     $orderClause 
                     LIMIT $limit OFFSET $offset";
 
-            $stmt = $db->query($sql);
+            
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             echo json_encode(array(

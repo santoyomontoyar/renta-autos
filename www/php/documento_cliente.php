@@ -15,9 +15,32 @@ switch ($action) {
             if ($page < 1) $page = 1;
             $offset = ($page - 1) * $limit;
 
-            $totalRows = (int)$db->query("SELECT COUNT(*) FROM documento_cliente")->fetchColumn();
+            
+            $search = trim($_post['search'] ?? '');
+            $whereClause = "";
+            $params = array();
+
+            if ($search !== '') {
+                $whereClause = "WHERE u.nombre LIKE :s 
+                                OR u.apellido LIKE :s 
+                                OR d.tipo_documento LIKE :s 
+                                OR d.numero_documento LIKE :s";
+                $params[':s'] = "%$search%";
+            }
+
+            
+            $countSql = "SELECT COUNT(*) 
+                         FROM documento_cliente d
+                         INNER JOIN cliente c ON d.id_cliente = c.id_cliente
+                         INNER JOIN usuario u ON c.id_usuario = u.id_usuario
+                         $whereClause";
+            $stmtCount = $db->prepare($countSql);
+            $stmtCount->execute($params);
+            $totalRows = (int)$stmtCount->fetchColumn();
+
             $totalPages = (int)ceil($totalRows / $limit);
 
+            
             $orderByParam = $_post['order_by'] ?? 'd.id_documento';
             $orderDirParam = (strtoupper($_post['order_dir'] ?? '') === 'DESC') ? 'DESC' : 'ASC';
             $tipoPrioridad = $_post['tipo_prioridad'] ?? 'INE_PRIMERO';
@@ -45,10 +68,12 @@ switch ($action) {
                     FROM documento_cliente d
                     INNER JOIN cliente c ON d.id_cliente = c.id_cliente
                     INNER JOIN usuario u ON c.id_usuario = u.id_usuario
+                    $whereClause
                     $orderClause
                     LIMIT $limit OFFSET $offset";
 
-            $stmt = $db->query($sql);
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             echo json_encode(array(

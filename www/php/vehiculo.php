@@ -15,20 +15,44 @@ switch ($action) {
             if ($page < 1) $page = 1;
             $offset = ($page - 1) * $limit;
 
-            $totalRows = (int)$db->query("SELECT COUNT(*) FROM vehiculo")->fetchColumn();
+            
+            $search = trim($_post['search'] ?? '');
+            $whereClause = "";
+            $params = array();
+
+            if ($search !== '') {
+                $whereClause = "WHERE m.marca LIKE :s 
+                                OR m.nombre_modelo LIKE :s 
+                                OR v.placa LIKE :s 
+                                OR m.categoria LIKE :s 
+                                OR s.nombre LIKE :s";
+                $params[':s'] = "%$search%";
+            }
+
+            
+            $countSql = "SELECT COUNT(*) 
+                         FROM vehiculo v
+                         INNER JOIN modelo_vehiculo m ON v.id_modelo = m.id_modelo
+                         INNER JOIN sucursal s ON v.id_sucursal_actual = s.id_sucursal
+                         $whereClause";
+            $stmtCount = $db->prepare($countSql);
+            $stmtCount->execute($params);
+            $totalRows = (int)$stmtCount->fetchColumn();
+
             $totalPages = (int)ceil($totalRows / $limit);
 
+            
             $orderByParam = $_post['order_by'] ?? 'v.id_vehiculo';
             $orderDirParam = (strtoupper($_post['order_dir'] ?? '') === 'DESC') ? 'DESC' : 'ASC';
             $estadoPrioridad = $_post['estado_prioridad'] ?? 'DISPONIBLE_PRIMERO';
 
             if ($orderByParam === 'estado_prioridad') {
                 if ($estadoPrioridad === 'RENTADO_PRIMERO') {
-                    $orderClause = "ORDER BY CASE v.estado WHEN 'Rentado' THEN 1 WHEN 'Disponible' THEN 2 ELSE 3 END ASC, v.id_vehiculo ASC";
+                    $orderClause = "ORDER BY CASE v.estado WHEN 'Rentado' THEN 1 ELSE 2 END ASC, v.id_vehiculo ASC";
                 } elseif ($estadoPrioridad === 'MANTENIMIENTO_PRIMERO') {
-                    $orderClause = "ORDER BY CASE v.estado WHEN 'Mantenimiento' THEN 1 WHEN 'Disponible' THEN 2 ELSE 3 END ASC, v.id_vehiculo ASC";
-                } else { // DISPONIBLE_PRIMERO
-                    $orderClause = "ORDER BY CASE v.estado WHEN 'Disponible' THEN 1 WHEN 'Rentado' THEN 2 ELSE 3 END ASC, v.id_vehiculo ASC";
+                    $orderClause = "ORDER BY CASE v.estado WHEN 'Mantenimiento' THEN 1 ELSE 2 END ASC, v.id_vehiculo ASC";
+                } else { 
+                    $orderClause = "ORDER BY CASE v.estado WHEN 'Disponible' THEN 1 ELSE 2 END ASC, v.id_vehiculo ASC";
                 }
             } elseif (in_array($orderByParam, array('m.nombre_modelo', 'm.costo_diario'))) {
                 $orderClause = "ORDER BY $orderByParam $orderDirParam, v.id_vehiculo ASC";
@@ -50,10 +74,12 @@ switch ($action) {
                     FROM vehiculo v
                     INNER JOIN modelo_vehiculo m ON v.id_modelo = m.id_modelo
                     INNER JOIN sucursal s ON v.id_sucursal_actual = s.id_sucursal
+                    $whereClause
                     $orderClause
                     LIMIT $limit OFFSET $offset";
 
-            $stmt = $db->query($sql);
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             echo json_encode(array(
