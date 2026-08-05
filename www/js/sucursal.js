@@ -8,6 +8,7 @@ const formArea = document.querySelector('#formArea');
 const addForm = document.querySelector('#addForm');
 const listBtn = document.querySelector('#listBtn');
 const ordenSucursal = document.querySelector('#ordenSucursal');
+const buscarSucursal = document.querySelector('#buscarSucursal');
  
 formArea.innerHTML = form();
  
@@ -17,22 +18,32 @@ const btnGuardar = document.querySelector('#btnGuardar');
  
 let sucursales = [];
 let idEditar = null;
+let debounceTimer;
 
 function ordenActual() {
     return ordenSucursal.value.split('-');
 }
 
-async function cargarSucursales(ordenarPor, direccion) {
+async function cargarSucursales(ordenarPor, direccion, busqueda) {
     const [op, dir] = [ordenarPor, direccion].every(Boolean) ? [ordenarPor, direccion] : ordenActual();
-    sucursales = await getSucursal(op, dir);
+    const texto = busqueda ?? buscarSucursal.value.trim();
+    sucursales = await getSucursal(op, dir, texto);
     renderSucursal(sucursales);
 }
+
+buscarSucursal.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        const [ordenarPor, direccion] = ordenActual();
+        cargarSucursales(ordenarPor, direccion, buscarSucursal.value.trim());
+    }, 300);
+});
 
 await cargarSucursales("id_sucursal", "ASC");
 
 ordenSucursal.addEventListener('change', () => {
     const [ordenarPor, direccion] = ordenActual();
-    cargarSucursales(ordenarPor, direccion);
+    cargarSucursales(ordenarPor, direccion, buscarSucursal.value.trim());
 });
 
 

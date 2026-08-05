@@ -214,7 +214,7 @@ function getAllRentas() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function getAllTipoSeguro($ordenarPor = 'id_tipo_seguro', $direccion = 'ASC') {
+function getAllTipoSeguro($ordenarPor = 'id_tipo_seguro', $direccion = 'ASC', $busqueda = '') {
     global $db;
 
     $columnasPermitidas = [
@@ -226,12 +226,22 @@ function getAllTipoSeguro($ordenarPor = 'id_tipo_seguro', $direccion = 'ASC') {
     $columna = $columnasPermitidas[$ordenarPor] ?? 'id_tipo_seguro';
     $direccion = strtoupper($direccion) === 'DESC' ? 'DESC' : 'ASC';
 
-    $stmt = $db->prepare("
-        SELECT id_tipo_seguro, nombre, descripcion
-        FROM tipo_seguro
-        ORDER BY $columna $direccion
-    ");
-    $stmt->execute();
+   $sql = "SELECT id_tipo_seguro, nombre, descripcion FROM tipo_seguro";
+
+    if ($busqueda !== '') {
+        $sql .= " WHERE CONCAT_WS(' ', nombre, descripcion) LIKE :busqueda";
+    }
+    
+    $sql .= " ORDER BY $columna $direccion";
+    
+    $stmt = $db->prepare($sql);
+    
+    if ($busqueda !== '') {
+        $like = "%$busqueda%";
+        $stmt->bindParam(':busqueda', $like);
+    }
+
+$stmt->execute();
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -291,7 +301,7 @@ function deleteTipoSeguro($id){
     return $stmt->execute();
 }
 
-function getAllSeguros($ordenarPor = 'id_seguro', $direccion = 'ASC') {
+function getAllSeguros($ordenarPor = 'id_seguro', $direccion = 'ASC', $busqueda = '') {
     global $db;
 
     $columnasPermitidas = [
@@ -303,20 +313,27 @@ function getAllSeguros($ordenarPor = 'id_seguro', $direccion = 'ASC') {
     $columna = $columnasPermitidas[$ordenarPor] ?? 's.id_seguro';
     $direccion = strtoupper($direccion) === 'DESC' ? 'DESC' : 'ASC';
 
-    $stmt = $db->prepare("
-        SELECT 
-            s.id_seguro,
-            ts.nombre AS tipo_seguro,
-            s.costo_diario
-        FROM seguro s
-        INNER JOIN tipo_seguro ts 
-            ON s.id_tipo_seguro = ts.id_tipo_seguro
-        ORDER BY $columna $direccion
-    ");
+    $sql = "SELECT s.id_seguro, ts.nombre AS tipo_seguro, s.costo_diario
+            FROM seguro s
+            INNER JOIN tipo_seguro ts ON s.id_tipo_seguro = ts.id_tipo_seguro";
+
+    if ($busqueda !== '') {
+        $sql .= " WHERE CONCAT_WS(' ', ts.nombre, s.costo_diario) LIKE :busqueda";
+    }
+
+    $sql .= " ORDER BY $columna $direccion";
+
+    $stmt = $db->prepare($sql);
+
+    if ($busqueda !== '') {
+        $like = "%$busqueda%";
+        $stmt->bindParam(':busqueda', $like);
+    }
 
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 
 function insertSeguro($datos) {
     global $db;
@@ -419,7 +436,7 @@ function getAllRoles() {
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-function getAllsucursal($ordenarPor = 'id_sucursal', $direccion = 'ASC') {
+function getAllsucursal($ordenarPor = 'id_sucursal', $direccion = 'ASC', $busqueda = '') {
     global $db;
 
     $columnasPermitidas = [
@@ -431,11 +448,21 @@ function getAllsucursal($ordenarPor = 'id_sucursal', $direccion = 'ASC') {
     $columna = $columnasPermitidas[$ordenarPor] ?? 'id_sucursal';
     $direccion = strtoupper($direccion) === 'DESC' ? 'DESC' : 'ASC';
 
-    $stmt = $db->prepare("
-        SELECT id_sucursal, nombre, ciudad
-        FROM sucursal
-        ORDER BY $columna $direccion
-    ");
+    $sql = "SELECT id_sucursal, nombre, ciudad FROM sucursal";
+
+    if ($busqueda !== '') {
+        $sql .= " WHERE CONCAT_WS(' ', nombre, ciudad) LIKE :busqueda";
+    }
+
+    $sql .= " ORDER BY $columna $direccion";
+
+    $stmt = $db->prepare($sql);
+
+    if ($busqueda !== '') {
+        $like = "%$busqueda%";
+        $stmt->bindParam(':busqueda', $like);
+    }
+
     $stmt->execute();
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);

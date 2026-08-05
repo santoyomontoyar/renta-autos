@@ -17,7 +17,8 @@ try {
         case "getAll":
             $ordenarPor = $_post['ordenarPor'] ?? 'id_sucursal';
             $direccion = $_post['direccion'] ?? 'ASC';
-            $data = getAllsucursal($ordenarPor, $direccion);
+            $busqueda = trim($_post['busqueda'] ?? '');
+            $data = getAllsucursal($ordenarPor, $direccion, $busqueda);
     echo json_encode([
         "status" => "success",
         "data" => $data

@@ -9,8 +9,8 @@ async function post(payload) {
     return res.json();
 }
  
-export default async function getSucursal(ordenarPor = "id_sucursal", direccion = "ASC") {
-    const json = await post({ action: "getAll", ordenarPor, direccion });
+export default async function getSucursal(ordenarPor = "id_sucursal", direccion = "ASC", busqueda = "") {
+    const json = await post({ action: "getAll", ordenarPor, direccion, busqueda });
     return json.data;
 }
  

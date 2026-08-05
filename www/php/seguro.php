@@ -7,10 +7,11 @@ $action = $_post['action'] ?? '';
 $data = "";
 
 switch ($action) {
-    case 'getAll':
-        $ordenarPor = $_post['ordenarPor'];
-        $direccion = $_post['direccion'];
-        $data = getAllSeguros($ordenarPor, $direccion);
+        case 'getAll':
+        $ordenarPor = $_post['ordenarPor'] ?? 'id_seguro';
+        $direccion  = $_post['direccion'] ?? 'ASC';
+        $busqueda   = trim($_post['busqueda'] ?? '');
+        $data = getAllSeguros($ordenarPor, $direccion, $busqueda);
         break;
         case 'getOne':
         $data = getSeguroById($_post['id']);

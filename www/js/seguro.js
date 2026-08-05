@@ -13,7 +13,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnCancelarAgregar = document.getElementById("btnCancelarAgregar");
     const form = document.getElementById("formSeguro");
     const tbody = document.getElementById("tbody");
-    const ordenSeguro = document.getElementById("ordenSeguro"); // <-- NUEVO: referencia al select
+    const ordenSeguro = document.getElementById("ordenSeguro");
+    const buscarSeguro = document.getElementById("buscarSeguro");
+
+
+    let ordenarPor = "id_seguro";
+    let direccion = "ASC";
+    let debounceTimer;
+
+
 
     btnAgregar.addEventListener("click", abrirFormularioAgregar);
     btnCancelarAgregar.addEventListener("click", cerrarFormulario);
@@ -21,20 +29,28 @@ document.addEventListener("DOMContentLoaded", () => {
     tbody.addEventListener("click", manejarAccionesTabla);
 
 
-    ordenSeguro.addEventListener("change", () => {        // <-- NUEVO: listener del select
-        const [ordenarPor, direccion] = ordenSeguro.value.split("-");
-        cargarSeguros(ordenarPor, direccion);
+    
+    ordenSeguro.addEventListener("change", () => {
+        [ordenarPor, direccion] = ordenSeguro.value.split("-");
+        cargarSeguros(ordenarPor, direccion, buscarSeguro.value.trim());
+    });
+
+     buscarSeguro.addEventListener("input", () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            cargarSeguros(ordenarPor, direccion, buscarSeguro.value.trim());
+        }, 300);
     });
 
     cargarSeguros();
     mostrarVistaTabla();
 });
 
-async function cargarSeguros(ordenarPor = "id_seguro", direccion = "ASC") {
+async function cargarSeguros(ordenarPor = "id_seguro", direccion = "ASC", busqueda = "") {
     const tbody = document.getElementById("tbody");
 
     try {
-        const json = await getAllSeguros(ordenarPor, direccion);
+        const json = await getAllSeguros(ordenarPor, direccion, busqueda);
 
     if (json.status === "success" && Array.isArray(json.data) && json.data.length > 0) {
             tbody.innerHTML = json.data.map(d => `
