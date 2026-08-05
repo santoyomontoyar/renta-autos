@@ -436,7 +436,7 @@ function getAllRoles() {
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-function getAllsucursal($ordenarPor = 'id_sucursal', $direccion = 'ASC') {
+function getAllsucursal($ordenarPor = 'id_sucursal', $direccion = 'ASC', $busqueda = '') {
     global $db;
 
     $columnasPermitidas = [
@@ -448,11 +448,21 @@ function getAllsucursal($ordenarPor = 'id_sucursal', $direccion = 'ASC') {
     $columna = $columnasPermitidas[$ordenarPor] ?? 'id_sucursal';
     $direccion = strtoupper($direccion) === 'DESC' ? 'DESC' : 'ASC';
 
-    $stmt = $db->prepare("
-        SELECT id_sucursal, nombre, ciudad
-        FROM sucursal
-        ORDER BY $columna $direccion
-    ");
+    $sql = "SELECT id_sucursal, nombre, ciudad FROM sucursal";
+
+    if ($busqueda !== '') {
+        $sql .= " WHERE CONCAT_WS(' ', nombre, ciudad) LIKE :busqueda";
+    }
+
+    $sql .= " ORDER BY $columna $direccion";
+
+    $stmt = $db->prepare($sql);
+
+    if ($busqueda !== '') {
+        $like = "%$busqueda%";
+        $stmt->bindParam(':busqueda', $like);
+    }
+
     $stmt->execute();
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);

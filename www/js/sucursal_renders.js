@@ -1,6 +1,18 @@
 export default function renderSucursal(sucursales) {
     const tbody = document.querySelector('#tbody');
     tbody.innerHTML = "";
+
+     if (!Array.isArray(sucursales) || sucursales.length === 0) {
+        tbody.innerHTML = `
+        <tr>
+            <td colspan="4" class="text-center py-6 text-gray-500">
+                Sin coincidencias.
+            </td>
+        </tr>`;
+        return;
+    }
+
+
  
     sucursales.forEach(d => {
         tbody.innerHTML += `
